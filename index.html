@@ -220,6 +220,7 @@ function asPost(payload, callback){
     <h1 class="splash-title">Investa</h1>
     <p class="splash-subtitle">Aprende, invierte y compite en el mundo del trading</p>
     <button class="splash-btn" id="splash-start-btn">Comenzar</button>
+    <button id="demo-btn" style="background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:10px 32px;font-size:14px;font-weight:500;cursor:pointer;margin-top:12px;">Ver demo</button>
   </div>
 </section>
 <!-- LOGIN -->
@@ -952,8 +953,31 @@ function selectPlan(p){
 (function(){
 "use strict";
 var cBC=null,cSC=null,sAnim=null;
-var STATE={user:{name:"Usuario",email:"usuario@investa.com",avatar:"👤",level:1,xp:0,xpMax:100,tokens:100},balance:10000,portfolio:[],transactions:[],vidDone:{},certDone:{},challengeDone:{},league:{players:[{name:"Carlos M.",investments:12,gain:8.4},{name:"Ana L.",investments:15,gain:7.2},{name:"Luis F.",investments:9,gain:6.8},{name:"Tu",investments:0,gain:0,isUser:true},{name:"Maria G.",investments:8,gain:5.3},{name:"Pedro S.",investments:14,gain:4.7},{name:"Sofia R.",investments:10,gain:3.2},{name:"Jorge D.",investments:7,gain:-1.5}]},courses:[{id:1,title:"Introduccion al Trading",level:"BASICO",completed:false,xp:50},{id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:false,xp:100},{id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}],achievements:[{id:1,name:"Primera inversion",icon:"🎯",unlocked:false},{id:2,name:"Diversificado",icon:"📊",unlocked:false},{id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},{id:4,name:"Estudiante dedicado",icon:"📚",unlocked:false}],currentBuyAsset:null,currentSellAsset:null};
+var STATE={user:{name:"Usuario",email:"usuario@investa.com",avatar:"👤",level:1,xp:0,xpMax:100,tokens:100,isDemo:false},balance:10000,portfolio:[],transactions:[],vidDone:{},certDone:{},challengeDone:{},league:{players:[{name:"Carlos M.",investments:12,gain:8.4},{name:"Ana L.",investments:15,gain:7.2},{name:"Luis F.",investments:9,gain:6.8},{name:"Tu",investments:0,gain:0,isUser:true},{name:"Maria G.",investments:8,gain:5.3},{name:"Pedro S.",investments:14,gain:4.7},{name:"Sofia R.",investments:10,gain:3.2},{name:"Jorge D.",investments:7,gain:-1.5}]},courses:[{id:1,title:"Introduccion al Trading",level:"BASICO",completed:false,xp:50},{id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:false,xp:100},{id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}],achievements:[{id:1,name:"Primera inversion",icon:"🎯",unlocked:false},{id:2,name:"Diversificado",icon:"📊",unlocked:false},{id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},{id:4,name:"Estudiante dedicado",icon:"📚",unlocked:false}],currentBuyAsset:null,currentSellAsset:null};
 // MP definido globalmente arriba
+
+// ---- Perfil Demo ----
+var DEMO_STATE = {
+  user:{name:"InvestaDemo",email:"demo@investa.com",avatar:"🦁",level:5,xp:340,xpMax:750,tokens:500,isDemo:true},
+  balance:6500,
+  portfolio:[
+    {symbol:"BTC",quantity:0.03,buyPrice:62000,invested:1860},
+    {symbol:"AAPL",quantity:10,buyPrice:220,invested:2200},
+    {symbol:"ETH",quantity:0.5,buyPrice:3000,invested:1500},
+    {symbol:"SOL",quantity:20,buyPrice:160,invested:3200}
+  ],
+  transactions:[
+    {type:"buy",symbol:"BTC",amount:1860,price:62000,date:new Date(Date.now()-7*86400000).toISOString()},
+    {type:"buy",symbol:"AAPL",amount:2200,price:220,date:new Date(Date.now()-5*86400000).toISOString()},
+    {type:"buy",symbol:"ETH",amount:1500,price:3000,date:new Date(Date.now()-3*86400000).toISOString()},
+    {type:"sell",symbol:"TSLA",amount:800,price:245,date:new Date(Date.now()-1*86400000).toISOString()},
+    {type:"buy",symbol:"SOL",amount:3200,price:160,date:new Date(Date.now()-86400000/2).toISOString()}
+  ],
+  vidDone:{v1:true,v2:true},certDone:{},challengeDone:{d1:true,d2:true,t1:true},
+  myLeagues:[{name:"Liga Investa Friends",type:"privada",code:"DEMO01",members:["Carlos M.","Ana L.","Luis F.","Maria G.","Pedro S.","Sofia R.","Jorge D.","InvestaDemo"],created:new Date().toISOString()}],
+  achievements:[{id:1,name:"Primera inversion",icon:"🎯",unlocked:true},{id:2,name:"Diversificado",icon:"📊",unlocked:true},{id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},{id:4,name:"Estudiante dedicado",icon:"📚",unlocked:true}],
+  courses:[{id:1,title:"Introduccion al Trading",level:"BASICO",completed:true,xp:50},{id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:true,xp:100},{id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}]
+};
 var SCH=[{j:1,r:"Carlos M."},{j:2,r:"Ana L."},{j:3,r:"Luis F."},{j:4,r:"Maria G."},{j:5,r:"Pedro S."},{j:6,r:"Sofia R."},{j:7,r:"Jorge D."}];
 var CJ=1;
 var RP={"Carlos M.":[{s:"BTC",i:2500,p:8.4},{s:"AAPL",i:1800,p:3.2},{s:"ETH",i:900,p:-1.1}],"Ana L.":[{s:"TSLA",i:3000,p:7.2},{s:"SOL",i:1200,p:2.5}],"Luis F.":[{s:"AMZN",i:2000,p:6.8},{s:"USD/MXN",i:800,p:1.2}],"Maria G.":[{s:"ETH",i:1500,p:5.3},{s:"BTC",i:1000,p:4.1}],"Pedro S.":[{s:"AAPL",i:2200,p:4.7},{s:"AMZN",i:1600,p:3.0},{s:"SOL",i:600,p:-0.5}],"Sofia R.":[{s:"BTC",i:1800,p:3.2},{s:"USD/JPY",i:700,p:0.8}],"Jorge D.":[{s:"TSLA",i:900,p:-1.5},{s:"ETH",i:600,p:-2.0}]};
@@ -1027,32 +1051,222 @@ function confirmSell(){var sym=STATE.currentSellAsset,p=STATE.portfolio.find(fun
 function uLeagData(){var inv=0,cur=0;STATE.portfolio.forEach(function(i){inv+=i.invested;cur+=i.quantity*MP[i.symbol].price;});var g=inv>0?((cur-inv)/inv)*100:0;var u=STATE.league.players.find(function(p){return p.isUser;});if(u){u.gain=g;u.investments=STATE.portfolio.length;}STATE.league.players.sort(function(a,b){return b.gain-a.gain;});save();}
 function myStats(){var inv=0,cur=0;STATE.portfolio.forEach(function(i){inv+=i.invested;cur+=i.quantity*MP[i.symbol].price;});var g=inv>0?((cur-inv)/inv)*100:0;return{name:STATE.user.name,balance:STATE.balance+cur,invested:inv,current:cur,gain:g,assets:STATE.portfolio.length,profit:cur-inv};}
 function rvStats(rn){var port=RP[rn]||[],inv=0,cur=0;port.forEach(function(i){inv+=i.i;cur+=i.i*(1+i.p/100);});var g=inv>0?((cur-inv)/inv)*100:0;return{name:rn,balance:10000+(cur-inv),invested:inv,current:cur,gain:g,assets:port.length,profit:cur-inv};}
-function uMatch(){updBal();var j=SCH[CJ-1],me=myStats(),rv=rvStats(j.r),win=me.gain>rv.gain,tie=me.gain.toFixed(2)===rv.gain.toFixed(2);document.getElementById("m-jornada").textContent="● Jornada "+CJ+" · En curso";document.getElementById("m-me-av").textContent=me.name.substring(0,2).toUpperCase();document.getElementById("m-rv-av").textContent=rv.name.substring(0,2).toUpperCase();document.getElementById("m-me-name").textContent=me.name;document.getElementById("m-rv-name").textContent=rv.name;var mP=document.getElementById("m-me-pct");mP.textContent=fp(me.gain);mP.className="fighter-pct "+(me.gain>0?"pos":me.gain<0?"neg":"zero");var rP=document.getElementById("m-rv-pct");rP.textContent=fp(rv.gain);rP.className="fighter-pct "+(rv.gain>0?"pos":rv.gain<0?"neg":"zero");var chip=document.getElementById("m-chip");if(tie){chip.textContent="EMPATE";chip.className="live-chip even";}else if(win){chip.textContent="GANANDO";chip.className="live-chip winning";}else{chip.textContent="PERDIENDO";chip.className="live-chip losing";}[1,2,3,4].forEach(function(n){document.getElementById("s-me"+n).textContent=me.name;document.getElementById("s-rv"+n).textContent=rv.name;});document.getElementById("s-me-bal").textContent=fc(me.balance);document.getElementById("s-rv-bal").textContent=fc(rv.balance);document.getElementById("s-me-inv").textContent=fc(me.invested);document.getElementById("s-rv-inv").textContent=fc(rv.invested);document.getElementById("s-me-ast").textContent=me.assets;document.getElementById("s-rv-ast").textContent=rv.assets;var mp2=document.getElementById("s-me-prf");mp2.textContent=fc(me.profit);mp2.style.color=me.profit>=0?"var(--success)":"var(--danger)";var rp2=document.getElementById("s-rv-prf");rp2.textContent=fc(rv.profit);rp2.style.color=rv.profit>=0?"var(--success)":"var(--danger)";var mets=[{lb:"Rendimiento semanal",mv:me.gain,rv:rv.gain,f:fp},{lb:"Total invertido",mv:me.invested,rv:rv.invested,f:fc},{lb:"Valor de cartera",mv:me.current,rv:rv.current,f:fc}];var bH="";mets.forEach(function(m){var tot=Math.abs(m.mv)+Math.abs(m.rv)||1;var mp=(Math.abs(m.mv)/tot*100).toFixed(1),rp=(100-parseFloat(mp)).toFixed(1);bH+='<div class="bar-row"><div class="bar-top"><span class="bar-top-me">'+me.name+" · "+m.f(m.mv)+'</span><span class="bar-top-rival">'+rv.name+" · "+m.f(m.rv)+'</span></div><div class="bar-track"><div class="bar-fill-me" style="width:'+mp+'%"></div><div class="bar-fill-rival" style="width:'+rp+'%"></div></div><div class="bar-sub">'+m.lb+"</div></div>";});document.getElementById("bars-list").innerHTML=bH;document.getElementById("ac-me-head").textContent=me.name;document.getElementById("ac-rv-head").textContent=rv.name;var maH="";if(STATE.portfolio.length===0)maH='<div class="no-assets">Sin activos</div>';else STATE.portfolio.forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pp=((cv-it.invested)/it.invested)*100;maH+='<div class="achip"><div class="achip-ico" style="background:'+a.color+';">'+a.icon+'</div><div><div class="achip-sym">'+it.symbol+'</div><div class="achip-pct '+(pp>=0?"p":"n")+'">'+fp(pp)+"</div></div></div>";});document.getElementById("ac-me-list").innerHTML=maH;var rPort=RP[j.r]||[],raH="";if(rPort.length===0)raH='<div class="no-assets">Sin activos</div>';else rPort.forEach(function(it){var a=MP[it.s]||{icon:"?",color:"var(--muted)"};raH+='<div class="achip"><div class="achip-ico" style="background:'+a.color+';">'+a.icon+'</div><div><div class="achip-sym">'+it.s+'</div><div class="achip-pct '+(it.p>=0?"p":"n")+'">'+fp(it.p)+"</div></div></div>";});document.getElementById("ac-rv-list").innerHTML=raH;var cH="";SCH.forEach(function(m){var iC=m.j===CJ,isP=m.j<CJ,cls,txt;if(iC){cls="now";txt="En curso";}else if(isP){var w=Math.random()>.4;cls=w?"win":"loss";txt=w?"Victoria":"Derrota";}else{cls="pending";txt="Pendiente";}cH+='<div class="cal-row"><div class="cal-num">J'+m.j+'</div><div class="cal-name">'+m.r+'</div><div class="cal-badge '+cls+'">'+txt+"</div></div>";});document.getElementById("cal-list").innerHTML=cH;}
-var RANGOS=[
-  {nombre:"Bronce I",   icon:"🥉",xpMin:0,    xpMax:200,  color:"#cd7f32",cursos:"Introduccion al Trading"},
-  {nombre:"Bronce II",  icon:"🥉",xpMin:200,  xpMax:400,  color:"#cd7f32",cursos:"Analisis Tecnico Basico"},
-  {nombre:"Plata I",    icon:"🥈",xpMin:400,  xpMax:700,  color:"#a0a0a0",cursos:"Gestion de Riesgo"},
-  {nombre:"Plata II",   icon:"🥈",xpMin:700,  xpMax:1100, color:"#a0a0a0",cursos:"Forex Avanzado"},
-  {nombre:"Oro I",      icon:"🥇",xpMin:1100, xpMax:1600, color:"#FFD700",cursos:"Criptomonedas Pro"},
-  {nombre:"Oro II",     icon:"🥇",xpMin:1600, xpMax:2200, color:"#FFD700",cursos:"Trading Algoritmico"},
-  {nombre:"Platino",    icon:"💎",xpMin:2200, xpMax:3000, color:"#4FC3F7",cursos:"Estrategias Institucionales"},
-  {nombre:"Diamante",   icon:"🔷",xpMin:3000, xpMax:4200, color:"#00BCD4",cursos:"Analisis Cuantitativo"},
-  {nombre:"Maestro",    icon:"👑",xpMin:4200, xpMax:6000, color:"#9C27B0",cursos:"Masterclass Investa"},
-  {nombre:"Gran Maestro",icon:"🌟",xpMin:6000,xpMax:99999,color:"#FF6F00",cursos:"Acceso Total Premium"}
-];
-function getTotalXP(){var total=STATE.user.xp;var xpMax=100;for(var i=1;i<STATE.user.level;i++){total+=xpMax;xpMax=Math.floor(xpMax*1.5);}return total;}
-function getRangoActual(){var total=getTotalXP();for(var i=RANGOS.length-1;i>=0;i--){if(total>=RANGOS[i].xpMin)return i;}return 0;}
+function uMatch(){
+  updBal();
+  // Buscar liga activa y partido de esta jornada
+  var leagues=STATE.myLeagues||[];
+  var activeLeague=leagues[0]||null;
+  var myMatch=activeLeague?getMyMatch(activeLeague):null;
+  var jornada=activeLeague?getCurrentJornada(activeLeague):1;
+
+  // Si hay partido real usarlo, sino usar demo datos
+  var rivalName = myMatch ? myMatch.rival : (SCH[CJ-1]?SCH[CJ-1].r:"Carlos M.");
+  var j={r:rivalName};
+
+  var me=myStats(), rv=rvStats(j.r);
+  var win=me.gain>rv.gain, tie=me.gain.toFixed(2)===rv.gain.toFixed(2);
+
+  document.getElementById("m-jornada").textContent="● Jornada "+jornada+" · En curso";
+  document.getElementById("m-me-av").textContent=me.name.substring(0,2).toUpperCase();
+  document.getElementById("m-rv-av").textContent=j.r.substring(0,2).toUpperCase();
+  document.getElementById("m-me-name").textContent=me.name;
+  document.getElementById("m-rv-name").textContent=j.r;
+
+  var mP=document.getElementById("m-me-pct");
+  mP.textContent=fp(me.gain);mP.className="fighter-pct "+(me.gain>0?"pos":me.gain<0?"neg":"zero");
+  var rP=document.getElementById("m-rv-pct");
+  rP.textContent=fp(rv.gain);rP.className="fighter-pct "+(rv.gain>0?"pos":rv.gain<0?"neg":"zero");
+
+  var chip=document.getElementById("m-chip");
+  if(tie){chip.textContent="EMPATE";chip.className="live-chip even";}
+  else if(win){chip.textContent="GANANDO";chip.className="live-chip winning";}
+  else{chip.textContent="PERDIENDO";chip.className="live-chip losing";}
+
+  [1,2,3,4].forEach(function(n){
+    document.getElementById("s-me"+n).textContent=me.name;
+    document.getElementById("s-rv"+n).textContent=j.r;
+  });
+  document.getElementById("s-me-bal").textContent=fc(me.balance);
+  document.getElementById("s-rv-bal").textContent=fc(rv.balance);
+  document.getElementById("s-me-inv").textContent=fc(me.invested);
+  document.getElementById("s-rv-inv").textContent=fc(rv.invested);
+  document.getElementById("s-me-ast").textContent=me.assets;
+  document.getElementById("s-rv-ast").textContent=rv.assets;
+  var mp2=document.getElementById("s-me-prf");mp2.textContent=fc(me.profit);mp2.style.color=me.profit>=0?"var(--success)":"var(--danger)";
+  var rp2=document.getElementById("s-rv-prf");rp2.textContent=fc(rv.profit);rp2.style.color=rv.profit>=0?"var(--success)":"var(--danger)";
+
+  var mets=[{lb:"Rendimiento semanal",mv:me.gain,rv:rv.gain,f:fp},{lb:"Total invertido",mv:me.invested,rv:rv.invested,f:fc},{lb:"Valor de cartera",mv:me.current,rv:rv.current,f:fc}];
+  var bH="";
+  mets.forEach(function(m){
+    var tot=Math.abs(m.mv)+Math.abs(m.rv)||1;
+    var mp=(Math.abs(m.mv)/tot*100).toFixed(1),rp=(100-parseFloat(mp)).toFixed(1);
+    bH+='<div class="bar-row"><div class="bar-top"><span class="bar-top-me">'+me.name+" · "+m.f(m.mv)+'</span><span class="bar-top-rival">'+j.r+" · "+m.f(m.rv)+'</span></div><div class="bar-track"><div class="bar-fill-me" style="width:'+mp+'%"></div><div class="bar-fill-rival" style="width:'+rp+'%"></div></div><div class="bar-sub">'+m.lb+"</div></div>";
+  });
+  document.getElementById("bars-list").innerHTML=bH;
+
+  // Activos
+  document.getElementById("ac-me-head").textContent=me.name;
+  document.getElementById("ac-rv-head").textContent=j.r;
+  var maH="";
+  if(STATE.portfolio.length===0)maH='<div class="no-assets">Sin activos</div>';
+  else STATE.portfolio.forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pp=((cv-it.invested)/it.invested)*100;maH+='<div class="achip"><div class="achip-ico" style="background:'+a.color+';">'+a.icon+'</div><div><div class="achip-sym">'+it.symbol+'</div><div class="achip-pct '+(pp>=0?"p":"n")+'">'+fp(pp)+"</div></div></div>";});
+  document.getElementById("ac-me-list").innerHTML=maH;
+
+  var rPort=RP[j.r]||[];var raH="";
+  if(rPort.length===0)raH='<div class="no-assets">Sin activos</div>';
+  else rPort.forEach(function(it){var a=MP[it.s]||{icon:"?",color:"var(--muted)"};raH+='<div class="achip"><div class="achip-ico" style="background:'+a.color+';">'+a.icon+'</div><div><div class="achip-sym">'+it.s+'</div><div class="achip-pct '+(it.p>=0?"p":"n")+'">'+fp(it.p)+"</div></div></div>";});
+  document.getElementById("ac-rv-list").innerHTML=raH;
+
+  // Calendario
+  var cH="";
+  if(activeLeague && activeLeague.calendar && activeLeague.calendar.length){
+    // Mostrar jornadas del usuario
+    var myMatches=activeLeague.calendar.filter(function(m){return m.local===STATE.user.name||m.visitante===STATE.user.name;});
+    myMatches.slice(0,10).forEach(function(m){
+      var iC=m.jornada===jornada, isP=m.jornada<jornada;
+      var rival=m.local===STATE.user.name?m.visitante:m.local;
+      var cls,txt;
+      if(iC){cls="now";txt="En curso";}
+      else if(isP){cls=Math.random()>.4?"win":"loss";txt=cls==="win"?"Victoria":"Derrota";}
+      else{cls="pending";txt="Pendiente";}
+      cH+='<div class="cal-row"><div class="cal-num">J'+m.jornada+'</div><div class="cal-name">'+rival+'</div><div class="cal-badge '+cls+'">'+txt+"</div></div>";
+    });
+  } else {
+    // Calendario demo
+    SCH.forEach(function(m){
+      var iC=m.j===CJ,isP=m.j<CJ,cls,txt;
+      if(iC){cls="now";txt="En curso";}else if(isP){var w=Math.random()>.4;cls=w?"win":"loss";txt=w?"Victoria":"Derrota";}else{cls="pending";txt="Pendiente";}
+      cH+='<div class="cal-row"><div class="cal-num">J'+m.j+'</div><div class="cal-name">'+m.r+'</div><div class="cal-badge '+cls+'">'+txt+"</div></div>";
+    });
+  }
+  document.getElementById("cal-list").innerHTML=cH;
+}
+
 function uLeag(){
   updBal();
-  var tb=document.getElementById("league-tbody");
-  if(tb){tb.innerHTML="";var uP=0;STATE.league.players.forEach(function(p,i){var row=document.createElement("tr");if(p.isUser){row.classList.add("highlight");uP=i+1;}var bc=i===0?"var(--primary)":(i<=2?"#cd7f32":(p.isUser?"var(--accent)":"var(--muted)"));row.innerHTML='<td><span class="rank-badge" style="background:'+bc+';">'+(i+1)+'</span></td><td style="font-weight:'+(p.isUser?'700':'600')+';">'+p.name+'</td><td>'+p.investments+'</td><td style="color:'+(p.gain>=0?'var(--success)':'var(--danger)')+';font-weight:600;">'+fp(p.gain)+'</td>';tb.appendChild(row);});var u=STATE.league.players.find(function(p){return p.isUser;});document.getElementById("user-rank").textContent="#"+uP;document.getElementById("user-weekly-gain").textContent=fp(u.gain);document.getElementById("user-weekly-gain").style.color=u.gain>=0?"var(--success)":"var(--danger)";}
-  var mll=document.getElementById("my-leagues-list");
-  if(mll){if(!STATE.myLeagues||STATE.myLeagues.length===0){mll.innerHTML="";}else{var lh='<div class="card-title" style="margin-top:4px;">Mis ligas creadas</div>';STATE.myLeagues.forEach(function(l){lh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:10px;margin-bottom:6px;"><div><div style="font-size:14px;font-weight:600;">'+l.name+'</div><div style="font-size:11px;color:var(--muted);">'+(l.type==="privada"?"🔒 Privada":"🌐 Publica")+'</div></div><span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);">Activa</span></div>';});mll.innerHTML=lh;}}
-  var totalXP=getTotalXP();var ri=getRangoActual();var rango=RANGOS[ri];var xpEnRango=totalXP-rango.xpMin;var xpNecesario=rango.xpMax-rango.xpMin;var pct=Math.min(100,(xpEnRango/xpNecesario*100)).toFixed(0);
-  var rb=document.getElementById("rango-actual-badge");if(rb){rb.textContent=rango.icon;document.getElementById("rango-actual-nombre").textContent=rango.nombre;document.getElementById("rango-actual-nombre").style.color=rango.color;document.getElementById("rango-xp-info").textContent=xpEnRango+" / "+xpNecesario+" XP para avanzar";document.getElementById("rango-progress").style.width=pct+"%";}
-  var rlist=document.getElementById("rangos-list");if(rlist){var rh="";RANGOS.forEach(function(r,idx){var unlocked=totalXP>=r.xpMin;var current=idx===ri;rh+='<div class="rango-item'+(current?" current":"")+(unlocked?"":" locked")+'"><div style="font-size:28px;">'+r.icon+'</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;color:'+(unlocked?r.color:"var(--muted)")+';">'+r.nombre+'</div><div style="font-size:11px;color:var(--muted);">'+r.xpMin+' XP · '+r.cursos+'</div>'+(current?'<div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:2px;">Rango actual</div>':"")+'</div>'+(unlocked&&!current?'<span class="badge success" style="font-size:11px;">✓</span>':"")+(current?'<span class="badge" style="background:rgba(107,70,193,0.15);color:var(--primary);font-size:11px;">Activo</span>':"")+((!unlocked)?'<span style="font-size:18px;">🔒</span>':"")+'</div>';});rlist.innerHTML=rh;}
-  var ntb=document.getElementById("nacional-tbody");if(ntb){var nacional=[{name:"ProTrader_MX",rango:"👑",gain:24.3},{name:"CriptoKing99",rango:"💎",gain:19.7},{name:"InvestaMaster",rango:"🥇",gain:17.2},{name:"TradingGuru",rango:"🥇",gain:15.8},{name:"MarketHawk",rango:"🥈",gain:14.1},{name:"AlgoTrader",rango:"🥈",gain:12.5},{name:"BullRunner",rango:"🥉",gain:11.3},{name:STATE.user.name,rango:RANGOS[getRangoActual()].icon,gain:STATE.league.players.find(function(p){return p.isUser;}).gain,isUser:true},{name:"ForexFan",rango:"🥉",gain:9.4},{name:"StockPicker",rango:"🥉",gain:8.1}];nacional.sort(function(a,b){return b.gain-a.gain;});var nh="";nacional.forEach(function(p,i){nh+='<tr'+(p.isUser?' class="highlight"':'')+"><td><span class='rank-badge' style='background:"+(i===0?"var(--primary)":i<=2?"#cd7f32":"var(--muted)")+"'>"+(i+1)+"</span></td><td style='font-weight:"+(p.isUser?"700":"500")+"'>"+p.name+"</td><td style='font-size:16px;'>"+p.rango+"</td><td style='color:"+(p.gain>=0?"var(--success)":"var(--danger)")+";font-weight:600;'>"+fp(p.gain)+"</td></tr>";});ntb.innerHTML=nh;var myPos=nacional.findIndex(function(p){return p.isUser;});document.getElementById("nacional-rank").textContent="#"+(myPos+1);}
+  var leagues = STATE.myLeagues || [];
+
+  // --- Sección mis ligas activas ---
+  var sec = document.getElementById("my-leagues-section");
+  if(sec){
+    if(leagues.length === 0){
+      sec.innerHTML = '<div class="empty-state" style="padding:20px 0;"><div class="empty-state-icon" style="font-size:40px;">🏆</div><p style="color:var(--muted);font-size:14px;">Aun no tienes ligas. Crea una o unete con un codigo.</p></div>';
+    } else {
+      var html = "";
+      leagues.forEach(function(lg, idx){
+        var members = lg.members || [STATE.user.name];
+        var myMatch = getMyMatch(lg);
+        var jornada = getCurrentJornada(lg);
+        html += '<div class="card" style="margin-bottom:12px;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+        html += '<div><h3 style="font-size:15px;font-weight:700;">'+lg.name+'</h3>';
+        html += '<p style="font-size:11px;color:var(--muted);">'+(lg.type==="privada"?"🔒 Privada":"🌐 Publica")+' · '+members.length+' miembros · Jornada '+jornada+'</p></div>';
+        html += '<span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);font-size:11px;">Activa</span></div>';
+
+        // Código de invitación
+        if(lg.code){
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:10px;">';
+          html += '<div><div style="font-size:11px;color:var(--muted);margin-bottom:2px;">Código de invitación</div>';
+          html += '<div style="font-size:20px;font-weight:800;letter-spacing:4px;color:var(--primary);">'+lg.code+'</div></div>';
+          html += '<button onclick="copyCode(&quot;'+lg.code+'&quot;)" style="background:var(--primary);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;">Copiar</button></div>';
+        }
+
+        // Tabla de clasificación
+        html += '<table class="league-table"><thead><tr><th>Pos</th><th>Usuario</th><th>% Gan.</th></tr></thead><tbody>';
+        var standings = members.map(function(m){
+          if(m === STATE.user.name){
+            var inv=0,cur=0;
+            STATE.portfolio.forEach(function(p){inv+=p.invested;cur+=p.quantity*MP[p.symbol].price;});
+            return{name:m,gain:inv>0?((cur-inv)/inv*100):0,isUser:true};
+          }
+          return{name:m,gain:(Math.random()*20-5).toFixed(2)*1,isUser:false};
+        });
+        standings.sort(function(a,b){return b.gain-a.gain;});
+        standings.forEach(function(p,i){
+          html += '<tr'+(p.isUser?' class="highlight"':'')+'>';
+          html += '<td><span class="rank-badge" style="background:'+(i===0?"var(--primary)":i===1?"#C0C0C0":i===2?"#cd7f32":"var(--muted)")+';font-size:11px;">'+(i+1)+'</span></td>';
+          html += '<td style="font-weight:'+(p.isUser?700:500)+';">'+p.name+'</td>';
+          html += '<td style="color:'+(p.gain>=0?"var(--success)":"var(--danger)")+';font-weight:600;">'+fp(p.gain)+'</td></tr>';
+        });
+        html += '</tbody></table>';
+
+        // Enfrentamiento actual
+        if(myMatch){
+          html += '<button class="btn-matchup" style="margin-top:10px;" onclick="nav(&quot;matchup&quot;)">⚔️ Jornada '+jornada+' vs '+myMatch.rival+'</button>';
+        }
+        html += '</div>';
+      });
+      sec.innerHTML = html;
+    }
+  }
+
+  // Rankig nacional
+  var ntb=document.getElementById("nacional-tbody");
+  if(ntb){
+    var nacional=[
+      {name:"ProTrader_MX",rango:"👑",gain:24.3},{name:"CriptoKing99",rango:"💎",gain:19.7},
+      {name:"InvestaMaster",rango:"🥇",gain:17.2},{name:"TradingGuru",rango:"🥇",gain:15.8},
+      {name:"MarketHawk",rango:"🥈",gain:14.1},{name:"AlgoTrader",rango:"🥈",gain:12.5},
+      {name:"BullRunner",rango:"🥉",gain:11.3},
+      {name:STATE.user.name,rango:RANGOS[getRangoActual()].icon,gain:(STATE.league&&STATE.league.players?STATE.league.players.find(function(p){return p.isUser;})||{gain:0}:{gain:0}).gain,isUser:true},
+      {name:"ForexFan",rango:"🥉",gain:9.4},{name:"StockPicker",rango:"🥉",gain:8.1}
+    ];
+    nacional.sort(function(a,b){return b.gain-a.gain;});
+    var nh="";
+    nacional.forEach(function(p,i){
+      nh+='<tr'+(p.isUser?' class="highlight"':'')+'>'+
+        '<td><span class="rank-badge" style="font-size:11px;background:'+(i===0?"var(--primary)":i<=2?"#cd7f32":"var(--muted)")+';">'+(i+1)+'</span></td>'+
+        '<td style="font-weight:'+(p.isUser?700:500)+';">'+p.name+'</td>'+
+        '<td style="font-size:16px;">'+p.rango+'</td>'+
+        '<td style="color:'+(p.gain>=0?'var(--success)':'var(--danger)')+';font-weight:600;">'+fp(p.gain)+'</td></tr>';
+    });
+    ntb.innerHTML=nh;
+    var myPos=nacional.findIndex(function(p){return p.isUser;});
+    var nrEl=document.getElementById("nacional-rank");
+    if(nrEl) nrEl.textContent="#"+(myPos+1);
+  }
+
+  // Rangos
+  var totalXP=getTotalXP(), ri=getRangoActual(), rango=RANGOS[ri];
+  var xpEnRango=totalXP-rango.xpMin, xpNecesario=rango.xpMax-rango.xpMin;
+  var pct=Math.min(100,(xpEnRango/xpNecesario*100)).toFixed(0);
+  var rb=document.getElementById("rango-actual-badge");
+  if(rb){
+    rb.textContent=rango.icon;
+    document.getElementById("rango-actual-nombre").textContent=rango.nombre;
+    document.getElementById("rango-actual-nombre").style.color=rango.color;
+    document.getElementById("rango-xp-info").textContent=xpEnRango+" / "+xpNecesario+" XP para avanzar";
+    document.getElementById("rango-progress").style.width=pct+"%";
+  }
+  var rlist=document.getElementById("rangos-list");
+  if(rlist){
+    var rh="";
+    RANGOS.forEach(function(r,idx){
+      var unlocked=totalXP>=r.xpMin, current=idx===ri;
+      rh+='<div class="rango-item'+(current?" current":"")+(unlocked?"":" locked")+'">'+
+        '<div style="font-size:28px;">'+r.icon+'</div>'+
+        '<div style="flex:1;"><div style="font-size:14px;font-weight:700;color:'+(unlocked?r.color:"var(--muted)")+';">'+r.nombre+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);">'+r.xpMin+' XP · '+r.cursos+'</div>'+
+        (current?'<div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:2px;">Rango actual</div>':"")+
+        '</div>'+(unlocked&&!current?'<span class="badge success" style="font-size:11px;">✓</span>':"")+
+        (current?'<span class="badge" style="background:rgba(107,70,193,0.15);color:var(--primary);font-size:11px;">Activo</span>':"")+
+        ((!unlocked)?'<span style="font-size:18px;">🔒</span>':"")+
+        '</div>';
+    });
+    rlist.innerHTML=rh;
+  }
 }
+
+// Copiar código de liga
+function copyCode(code){
+  navigator.clipboard.writeText(code).then(function(){
+    toast("Código "+code+" copiado!");
+  }).catch(function(){
+    toast("Código: "+code);
+  });
+}
+
+
 function uHome(){updBal();var inv=0,cur=0;STATE.portfolio.forEach(function(it){inv+=it.invested;cur+=it.quantity*MP[it.symbol].price;});var pf=cur-inv;document.getElementById("home-total-balance").textContent=fc(STATE.balance+cur);document.getElementById("home-invested").textContent=fc(inv);document.getElementById("home-profit").textContent=fc(pf);document.getElementById("home-profit").style.color=pf>=0?"var(--success)":"var(--danger)";var prev=document.getElementById("home-portfolio-preview");if(STATE.portfolio.length>0){var h='<div class="card"><div class="card-title">Tus inversiones activas ('+STATE.portfolio.length+')</div>';STATE.portfolio.slice(0,3).forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pp=((cv-it.invested)/it.invested)*100;h+='<div class="asset-item" data-nav="portfolio"><div class="asset-info"><div class="asset-icon" style="background:'+a.color+';">'+a.icon+'</div><div class="asset-details"><h4>'+it.symbol+'</h4><p>Invertido: '+fc(it.invested)+'</p></div></div><div class="asset-value"><div class="asset-price">'+fc(cv)+'</div><div class="asset-change '+(pp>=0?'positive':'negative')+'">'+fp(pp)+"</div></div></div>";});if(STATE.portfolio.length>3)h+='<p style="text-align:center;margin-top:12px;color:var(--muted);font-size:14px;">+'+(STATE.portfolio.length-3)+' mas</p>';h+='</div>';prev.innerHTML=h;}else prev.innerHTML="";}
 function uPort(){updBal();var list=document.getElementById("portfolio-list");if(STATE.portfolio.length===0){list.innerHTML='<div class="empty-state"><div class="empty-state-icon">📊</div><h3>Sin inversiones</h3><p>Comienza a invertir</p><button class="btn btn-primary" data-nav="markets">Explorar mercados</button></div>';}else{var h="";STATE.portfolio.forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pf=cv-it.invested,pp=(pf/it.invested)*100;h+='<div class="asset-item" data-sell="'+it.symbol+'"><div class="asset-info"><div class="asset-icon" style="background:'+a.color+';">'+a.icon+'</div><div class="asset-details"><h4>'+it.symbol+'</h4><p>Invertido: '+fc(it.invested)+'</p></div></div><div class="asset-value"><div class="asset-price">'+fc(cv)+'</div><div class="asset-change '+(pp>=0?'positive':'negative')+'">'+fp(pp)+"</div></div></div>";});list.innerHTML=h;}var inv=0,cur=0;STATE.portfolio.forEach(function(it){inv+=it.invested;cur+=it.quantity*MP[it.symbol].price;});var pf=cur-inv,pp=inv>0?(pf/inv)*100:0;document.getElementById("portfolio-invested").textContent=fc(inv);document.getElementById("portfolio-current").textContent=fc(cur);document.getElementById("portfolio-profit").textContent=fc(pf)+" ("+fp(pp)+")";document.getElementById("portfolio-profit").style.color=pf>=0?"var(--success)":"var(--danger)";var hist=document.getElementById("transaction-history");if(STATE.transactions.length===0){hist.innerHTML='<div class="empty-state"><div class="empty-state-icon">📝</div><h3>Sin transacciones</h3></div>';}else{var tH="";STATE.transactions.slice(0,10).forEach(function(tx){var d=new Date(tx.date);tH+='<div class="transaction-item"><div class="transaction-info"><div class="transaction-icon '+tx.type+'">'+(tx.type==="buy"?"↓":"↑")+'</div><div class="transaction-details"><h4>'+(tx.type==="buy"?"Compra":"Venta")+" - "+tx.symbol+'</h4><p>'+d.toLocaleDateString("es-MX",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})+'</p></div></div><div class="transaction-amount"><div class="price" style="color:'+(tx.type==="buy"?"var(--danger)":"var(--success)")+';">'+(tx.type==="buy"?"-":"+")+fc(tx.amount)+'</div><div class="date">'+fc(tx.price)+"/u</div></div></div>";});hist.innerHTML=tH;}}
 function uMkts(){
@@ -1287,6 +1501,21 @@ document.addEventListener("DOMContentLoaded",function(){
     try{if(sAnim){cancelAnimationFrame(sAnim);sAnim=null;}}catch(e){}
     showScreen("login");
   });
+
+  // Botón demo en splash (lo agregaremos al HTML)
+  var demoBtn=document.getElementById("demo-btn");
+  if(demoBtn){
+    demoBtn.addEventListener("click",function(){
+      try{if(sAnim){cancelAnimationFrame(sAnim);sAnim=null;}}catch(e){}
+      // Cargar estado demo
+      Object.assign(STATE, JSON.parse(JSON.stringify(DEMO_STATE)));
+      _currentUID = "demo";
+      document.getElementById("drawer-user-name").textContent=STATE.user.name;
+      showNav();
+      nav("home");
+      toast("Modo demo activado - Explora la app!");
+    });
+  }
   document.getElementById("login-btn").addEventListener("click",handleLogin);
 
   // Pantalla de registro
@@ -1357,12 +1586,51 @@ document.addEventListener("DOMContentLoaded",function(){
     var name=document.getElementById("new-league-name").value.trim();
     if(!name){toast("Escribe un nombre para tu liga");return;}
     if(!STATE.myLeagues)STATE.myLeagues=[];
-    STATE.myLeagues.push({name:name,type:_leagueType,created:new Date().toISOString()});
+    var code = genLeagueCode();
+    var members = [STATE.user.name];
+    // Temporada: 2 por año de 6 meses = 26 semanas
+    var startDate = new Date().toISOString();
+    var calendar = genCalendar(members, 26);
+    STATE.myLeagues.push({
+      name:name, type:_leagueType, code:code,
+      members:members, startDate:startDate,
+      calendar:calendar, created:startDate
+    });
     document.getElementById("new-league-name").value="";
     gainXP(50,"Liga creada");
     save();
+    switchLeagueTab("amigos");
     uLeag();
-    toast("Liga '"+name+"' creada!");
+    toast("Liga '"+name+"' creada! Código: "+code);
+  });
+
+  // Unirse a liga con código
+  document.getElementById("join-league-btn").addEventListener("click",function(){
+    var code=document.getElementById("join-league-code").value.trim().toUpperCase();
+    if(code.length < 4){toast("Ingresa el codigo de invitacion");return;}
+    // Buscar en las ligas del usuario si ya pertenece
+    var already=(STATE.myLeagues||[]).find(function(l){return l.code===code;});
+    if(already){toast("Ya perteneces a esa liga");return;}
+    // Buscar en Sheets via Apps Script
+    asPost({action:"joinLeague", uid:_currentUID, code:code}, function(r){
+      if(r.ok && r.league){
+        if(!STATE.myLeagues)STATE.myLeagues=[];
+        var lg=r.league;
+        if(!lg.members)lg.members=[];
+        if(lg.members.indexOf(STATE.user.name)===-1) lg.members.push(STATE.user.name);
+        // Regenerar calendario con nuevo miembro
+        lg.calendar=genCalendar(lg.members,26);
+        STATE.myLeagues.push(lg);
+        document.getElementById("join-league-code").value="";
+        gainXP(20,"Unido a liga");
+        save();
+        uLeag();
+        toast("Te uniste a '"+lg.name+"'!");
+      } else {
+        // Código no encontrado en servidor - buscar localmente (demo)
+        toast(r.error||"Codigo no encontrado. Verifica e intenta de nuevo.");
+      }
+    });
   });
   document.getElementById("subscribe-btn").addEventListener("click",function(){toast("Proximamente disponible. Gracias por tu interes!");});
 
