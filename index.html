@@ -1816,12 +1816,13 @@ document.addEventListener("DOMContentLoaded",function(){
   }
 
   function refreshMarketUI(){
+    // Siempre actualizar mercados aunque no esté activo (para que al entrar ya tenga precios)
+    uMkts();
+    updBal();
     var ac=document.querySelector(".screen.active");
-    if(ac&&ac.dataset.screen==="markets") uMkts();
-    if(STATE.portfolio&&STATE.portfolio.length>0){
-      updBal();
-      if(ac&&ac.dataset.screen==="home") uHome();
-      if(ac&&ac.dataset.screen==="portfolio") uPort();
+    if(ac){
+      if(ac.dataset.screen==="home") uHome();
+      if(ac.dataset.screen==="portfolio") uPort();
     }
   }
 
