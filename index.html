@@ -1042,10 +1042,60 @@ function nav(id){showScreen(id);document.querySelectorAll(".tab-item").forEach(f
 function toggleDrawer(){document.getElementById("drawer").classList.toggle("open");document.getElementById("drawerOverlay").classList.toggle("open");}
 function closeDrawer(){document.getElementById("drawer").classList.remove("open");document.getElementById("drawerOverlay").classList.remove("open");}
 function initParts(){try{var sec=document.querySelector('[data-screen="splash"]');if(!sec)return;var c=document.createElement("canvas");c.style.cssText="position:absolute;top:0;left:0;pointer-events:none;z-index:0;";c.width=390;c.height=window.innerHeight;sec.insertBefore(c,sec.firstChild);var W=c.width,H=c.height,ctx=c.getContext("2d"),pts=[];for(var i=0;i<80;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+1,vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1.2,a:Math.random()*.5+.3});(function draw(){try{ctx.clearRect(0,0,W,H);for(var a=0;a<pts.length;a++)for(var b=a+1;b<pts.length;b++){var dx=pts[a].x-pts[b].x,dy=pts[a].y-pts[b].y,d=Math.sqrt(dx*dx+dy*dy);if(d<140){ctx.beginPath();ctx.strokeStyle="rgba(167,139,250,"+(0.3*(1-d/140))+")";ctx.lineWidth=.8;ctx.moveTo(pts[a].x,pts[a].y);ctx.lineTo(pts[b].x,pts[b].y);ctx.stroke();}}pts.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle="rgba(167,139,250,"+p.a+")";ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;});sAnim=requestAnimationFrame(draw);}catch(e){}})();}catch(e){}}
-function openBuy(sym){var a=MP[sym];if(!a)return;STATE.currentBuyAsset=sym;window._curBuySym=sym;document.getElementById("modal-asset-name").textContent=sym;document.getElementById("modal-asset-price").textContent=fc(a.price);document.getElementById("modal-asset-change").textContent=fp(a.change);document.getElementById("modal-asset-change").style.color=a.change>=0?"var(--success)":"var(--danger)";document.getElementById("modal-balance").textContent=fc(STATE.balance);document.getElementById("buy-amount").value="";document.getElementById("modal-total").textContent="$0.00";document.getElementById("buyModal").classList.add("open");document.querySelectorAll("#buyModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});setTimeout(function(){if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}gChartReal(sym,"price-chart","#2DD4BF","line");},50);}
+function openBuy(sym){
+  var a=MP[sym];if(!a)return;
+  STATE.currentBuyAsset=sym;window._curBuySym=sym;
+  document.getElementById("modal-asset-name").textContent=sym;
+  document.getElementById("modal-asset-price").textContent=fc(a.price);
+  document.getElementById("modal-asset-change").textContent=fp(a.change);
+  document.getElementById("modal-asset-change").style.color=a.change>=0?"var(--success)":"var(--danger)";
+  document.getElementById("modal-balance").textContent=fc(STATE.balance);
+  document.getElementById("buy-amount").value="";
+  document.getElementById("modal-total").textContent="$0.00";
+  document.getElementById("buyModal").classList.add("open");
+  document.querySelectorAll("#buyModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});
+  setTimeout(function(){
+    // Reemplazar canvas para evitar estado corrupto
+    if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}
+    var container=document.getElementById("chart-container");
+    var oldCanvas=document.getElementById("price-chart");
+    if(oldCanvas&&container){
+      var newCanvas=document.createElement("canvas");
+      newCanvas.id="price-chart";
+      container.replaceChild(newCanvas,oldCanvas);
+    }
+    gChartReal(sym,"price-chart","#2DD4BF","line");
+  },100);
+}
 function closeBuy(){document.getElementById("buyModal").classList.remove("open");if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}STATE.currentBuyAsset=null;}
 function confirmBuy(){var amt=parseFloat(document.getElementById("buy-amount").value);if(!amt||amt<=0){toast("Ingresa una cantidad valida");return;}if(amt>STATE.balance){toast("Balance insuficiente");return;}var a=MP[STATE.currentBuyAsset],sym=STATE.currentBuyAsset,ex=STATE.portfolio.find(function(p){return p.symbol===sym;});if(ex){var tq=ex.quantity+amt/a.price;ex.invested+=amt;ex.quantity=tq;ex.buyPrice=ex.invested/tq;}else STATE.portfolio.push({symbol:sym,quantity:amt/a.price,buyPrice:a.price,invested:amt});STATE.balance-=amt;STATE.transactions.unshift({type:"buy",symbol:sym,amount:amt,price:a.price,date:new Date().toISOString()});chkAch();save();updBal();uLeagData();closeBuy();toast("Compraste "+sym+" por "+fc(amt));}
-function openSell(sym){var p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var cp=MP[sym].price,cv=p.quantity*cp,pf=cv-p.invested;STATE.currentSellAsset=sym;window._curSellSym=sym;document.getElementById("sell-modal-asset-name").textContent=sym;document.getElementById("sell-modal-current-price").textContent=fc(cp);document.getElementById("sell-modal-investment").textContent=fc(p.invested);document.getElementById("sell-modal-current-value").textContent=fc(cv);document.getElementById("sell-modal-profit").textContent=fc(pf);document.getElementById("sell-modal-profit").style.color=pf>=0?"var(--success)":"var(--danger)";document.getElementById("sell-amount").value="";document.getElementById("sell-receive").textContent="$0.00";document.getElementById("sell-gain-est").textContent="$0.00";document.getElementById("sellModal").classList.add("open");setTimeout(function(){if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}gChartReal(sym,"sell-price-chart","#EF4444","line");document.querySelectorAll("#sellModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});},50);}
+function openSell(sym){
+  var p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;
+  var cp=MP[sym].price,cv=p.quantity*cp,pf=cv-p.invested;
+  STATE.currentSellAsset=sym;window._curSellSym=sym;
+  document.getElementById("sell-modal-asset-name").textContent=sym;
+  document.getElementById("sell-modal-current-price").textContent=fc(cp);
+  document.getElementById("sell-modal-investment").textContent=fc(p.invested);
+  document.getElementById("sell-modal-current-value").textContent=fc(cv);
+  document.getElementById("sell-modal-profit").textContent=fc(pf);
+  document.getElementById("sell-modal-profit").style.color=pf>=0?"var(--success)":"var(--danger)";
+  document.getElementById("sell-amount").value="";
+  document.getElementById("sell-receive").textContent="$0.00";
+  document.getElementById("sell-gain-est").textContent="$0.00";
+  document.getElementById("sellModal").classList.add("open");
+  setTimeout(function(){
+    if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}
+    var container=document.getElementById("sell-chart-container");
+    var oldCanvas=document.getElementById("sell-price-chart");
+    if(oldCanvas&&container){
+      var newCanvas=document.createElement("canvas");
+      newCanvas.id="sell-price-chart";
+      container.replaceChild(newCanvas,oldCanvas);
+    }
+    gChartReal(sym,"sell-price-chart","#EF4444","line");
+    document.querySelectorAll("#sellModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});
+  },100);
+}
 function closeSell(){document.getElementById("sellModal").classList.remove("open");if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}STATE.currentSellAsset=null;}
 function confirmSell(){var sym=STATE.currentSellAsset,p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var amt=parseFloat(document.getElementById("sell-amount").value),cv=p.quantity*MP[sym].price;if(!amt||amt<=0){toast("Ingresa cantidad valida");return;}if(amt>cv){toast("Maximo: "+fc(cv));return;}var ratio=amt/cv,iS=p.invested*ratio,gain=amt-iS;STATE.balance+=amt;STATE.transactions.unshift({type:"sell",symbol:sym,amount:amt,price:MP[sym].price,date:new Date().toISOString()});if(ratio>=0.9999)STATE.portfolio=STATE.portfolio.filter(function(x){return x.symbol!==sym;});else{p.quantity-=p.quantity*ratio;p.invested-=iS;}save();updBal();uLeagData();closeSell();toast("Vendiste "+fc(amt)+" de "+sym);uPort();}
 function uLeagData(){var inv=0,cur=0;STATE.portfolio.forEach(function(i){inv+=i.invested;cur+=i.quantity*MP[i.symbol].price;});var g=inv>0?((cur-inv)/inv)*100:0;var u=STATE.league.players.find(function(p){return p.isUser;});if(u){u.gain=g;u.investments=STATE.portfolio.length;}STATE.league.players.sort(function(a,b){return b.gain-a.gain;});save();}
