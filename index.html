@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Investa</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--primary:#6B46C1;--primary-dark:#553399;--accent:#2DD4BF;--bg:#F8F7FB;--ink:#1A1A1A;--muted:#8A8A99;--card-bg:#FFFFFF;--success:#10B981;--danger:#EF4444;--border:#E5E5EA;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#0f0c29 0%,#1a0533 40%,#0b2d5e 100%);color:var(--ink);width:100%;height:100dvh;height:100vh;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;}
+#app-shell{background:var(--bg);width:100%;max-width:430px;height:100dvh;height:100vh;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(107,70,193,0.4);}
+.screen{display:none;padding:0;height:100%;overflow:hidden;flex-direction:column;}
+.screen.active{display:flex;height:100%;}
+.screen[data-screen="splash"]{padding:0;display:none;height:100%;}
+.screen[data-screen="splash"].active{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);}
+.screen-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:120px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.tabs-bottom{position:absolute;bottom:0;left:0;width:100%;background:var(--card-bg);display:none;justify-content:space-around;padding:10px 8px;padding-bottom:calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,0.08);z-index:999;}.splash-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px;}
+.splash-logo{width:100px;height:100px;margin-bottom:24px;animation:float 3s ease-in-out infinite;}
+.splash-title{color:white;font-size:42px;font-weight:800;margin-bottom:8px;letter-spacing:-1px;text-shadow:0 2px 16px rgba(0,0,0,0.3);}
+.splash-subtitle{color:rgba(255,255,255,0.7);font-size:15px;margin-bottom:48px;max-width:240px;line-height:1.6;}
+.splash-btn{background:white;color:var(--primary);border:none;border-radius:16px;padding:16px 48px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));background:var(--card-bg);box-shadow:0 2px 8px rgba(0,0,0,0.05);flex-shrink:0;position:sticky;top:0;z-index:50;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.menu-btn{background:none;border:none;font-size:24px;cursor:pointer;padding:4px;}
+.balance{font-size:15px;font-weight:600;color:var(--primary);}
+.tabs-bottom{position:absolute;bottom:0;left:0;width:100%;background:var(--card-bg);display:none;justify-content:space-around;padding:10px 8px;padding-bottom:calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,0.08);z-index:999;}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:4px 8px;transition:color 0.2s;}
+.tab-item.active{color:var(--primary);}
+.tab-item svg{width:22px;height:22px;stroke:currentColor;fill:none;flex-shrink:0;}
+.drawer-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;display:none;}
+.drawer-overlay.open{display:block;}
+.drawer{position:absolute;top:0;left:-280px;width:280px;height:100%;background:var(--card-bg);z-index:201;transition:left 0.3s ease;overflow-y:auto;box-shadow:2px 0 12px rgba(0,0,0,0.1);}
+.drawer.open{left:0;}
+.drawer-header{padding:24px 16px;background:linear-gradient(135deg,var(--accent) 0%,var(--primary) 100%);color:white;}
+.drawer-header h3{font-size:20px;margin-bottom:4px;}
+.drawer-item{display:block;padding:16px;border-bottom:1px solid var(--border);color:var(--ink);font-size:15px;cursor:pointer;transition:background 0.2s;}
+.drawer-item:hover{background:var(--bg);}
+.card{background:var(--card-bg);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.card-title{font-size:14px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;}
+.btn{padding:14px 24px;border-radius:12px;border:none;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%;text-align:center;}
+.btn-primary{background:var(--primary);color:white;}
+.btn-secondary{background:transparent;color:var(--primary);border:2px solid var(--primary);}
+.btn-small{padding:8px 16px;font-size:14px;width:auto;}
+.btn-danger{background:var(--danger);color:white;}
+.input-group{margin-bottom:16px;}
+.input-group label{display:block;font-size:14px;font-weight:500;margin-bottom:8px;}
+.input{width:100%;padding:14px;border:2px solid var(--border);border-radius:12px;font-size:16px;transition:border-color 0.2s;}
+.input:focus{outline:none;border-color:var(--primary);}
+.asset-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;}
+.asset-item:hover{background:#F0EFF5;}
+.asset-info{display:flex;align-items:center;gap:12px;}
+.asset-icon{width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;}
+.asset-details h4{font-size:15px;margin-bottom:2px;}
+.asset-details p{font-size:13px;color:var(--muted);}
+.asset-value{text-align:right;}
+.asset-price{font-size:16px;font-weight:600;margin-bottom:2px;}
+.asset-change{font-size:13px;padding:4px 8px;border-radius:6px;}
+.asset-change.positive{color:var(--success);background:rgba(16,185,129,0.1);}
+.asset-change.negative{color:var(--danger);background:rgba(239,68,68,0.1);}
+.modal-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:300;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card-bg);border-radius:20px;padding:24px;max-width:380px;width:90%;max-height:80vh;overflow-y:auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.modal-header h3{font-size:20px;}
+.modal-close{background:none;border:none;font-size:28px;cursor:pointer;color:var(--muted);line-height:1;}
+.toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:12px 24px;border-radius:8px;font-size:14px;z-index:400;display:none;max-width:320px;text-align:center;}
+.toast.show{display:block;}
+.stat-card{background:linear-gradient(135deg,rgba(107,70,193,0.1) 0%,rgba(45,212,191,0.1) 100%);border-radius:12px;padding:16px;margin-bottom:12px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.stat-row:last-child{margin-bottom:0;}
+.stat-label{font-size:14px;color:var(--muted);}
+.stat-value{font-size:18px;font-weight:700;color:var(--primary);}
+.progress-bar{width:100%;height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:8px;}
+.progress-fill{height:100%;background:var(--primary);transition:width 0.3s ease;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:var(--primary);color:white;border-radius:8px;font-size:13px;font-weight:600;}
+.badge.success{background:var(--success);}
+.transaction-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px;}
+.transaction-info{display:flex;align-items:center;gap:12px;}
+.transaction-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.transaction-icon.buy{background:rgba(16,185,129,0.1);color:var(--success);}
+.transaction-icon.sell{background:rgba(239,68,68,0.1);color:var(--danger);}
+.transaction-details h4{font-size:14px;margin-bottom:2px;}
+.transaction-details p{font-size:12px;color:var(--muted);}
+.transaction-amount{text-align:right;}
+.transaction-amount .price{font-size:15px;font-weight:600;margin-bottom:2px;}
+.transaction-amount .date{font-size:11px;color:var(--muted);}
+.empty-state{text-align:center;padding:40px 20px;}
+.empty-state-icon{font-size:64px;margin-bottom:16px;opacity:0.5;}
+.empty-state h3{font-size:18px;margin-bottom:8px;}
+.empty-state p{font-size:14px;color:var(--muted);margin-bottom:20px;}
+.league-table{width:100%;border-collapse:collapse;}
+.league-table th{background:var(--bg);padding:12px 8px;text-align:left;font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:600;}
+.league-table td{padding:12px 8px;border-bottom:1px solid var(--border);font-size:14px;}
+.league-table tr.highlight{background:rgba(107,70,193,0.1);}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--primary);color:white;border-radius:50%;font-weight:600;font-size:13px;}
+.profile-avatar{width:80px;height:80px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;}
+.quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;}
+.quick-action-btn{background:var(--card-bg);border:none;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.quick-action-btn:hover{transform:translateY(-2px);}
+.quick-action-icon{display:flex;align-items:center;justify-content:center;margin-bottom:8px;color:var(--primary);}
+.quick-action-label{font-size:13px;font-weight:500;}
+.social-buttons{display:flex;gap:12px;margin:16px 0;}
+.social-btn{flex:1;padding:12px;border:2px solid var(--border);background:white;border-radius:10px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.level-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,var(--accent) 0%,var(--primary) 100%);color:white;border-radius:20px;font-weight:600;margin-bottom:12px;}
+#chart-container{height:180px;background:white;border-radius:12px;padding:8px;position:relative;}
+.chart-type-btn{padding:4px 10px;font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--bg);color:var(--muted);border-radius:6px;cursor:pointer;transition:all 0.2s;}
+.chart-type-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
+.avatar-opt{font-size:32px;background:var(--bg);border:2px solid transparent;border-radius:14px;padding:10px;cursor:pointer;transition:all 0.2s;text-align:center;}
+.avatar-opt.selected{border-color:var(--primary);background:rgba(107,70,193,0.1);}
+.matchup-hero{background:linear-gradient(145deg,#12003a 0%,#2a0e6e 45%,#0b2d5e 100%);border-radius:20px;padding:20px 16px;margin-bottom:16px;position:relative;overflow:hidden;}
+.matchup-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(45,212,191,0.12) 0%,transparent 70%);}
+.matchup-hero::after{content:'';position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(107,70,193,0.18) 0%,transparent 70%);}
+.jornada-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(45,212,191,0.15);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:4px 12px;margin-bottom:16px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;position:relative;z-index:1;}
+.matchup-fighters{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+.fighter{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;}
+.fighter-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;border:2px solid rgba(255,255,255,0.15);}
+.fighter-avatar.me{background:linear-gradient(135deg,#6B46C1,#2DD4BF);box-shadow:0 0 24px rgba(107,70,193,0.55);}
+.fighter-avatar.rival{background:linear-gradient(135deg,#991b1b,#ef4444);box-shadow:0 0 24px rgba(239,68,68,0.45);}
+.fighter-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);text-align:center;max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fighter-pct{font-size:22px;font-weight:800;text-align:center;}
+.fighter-pct.pos{color:var(--accent);}.fighter-pct.neg{color:#f87171;}.fighter-pct.zero{color:rgba(255,255,255,0.4);}
+.vs-center{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 10px;}
+.vs-word{font-size:22px;font-weight:900;color:rgba(255,255,255,0.15);}
+.live-chip{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 9px;border-radius:20px;text-transform:uppercase;}
+.live-chip.winning{background:rgba(45,212,191,0.2);color:var(--accent);}
+.live-chip.losing{background:rgba(239,68,68,0.2);color:#f87171;}
+.live-chip.even{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.sg-card{background:var(--card-bg);border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.sg-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.sg-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.sg-row:last-child{margin-bottom:0;}
+.sg-who{font-size:11px;color:var(--muted);font-weight:500;}
+.sg-val{font-size:13px;font-weight:700;}
+.bars-card{background:var(--card-bg);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.bars-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;}
+.bar-row{margin-bottom:14px;}.bar-row:last-child{margin-bottom:0;}
+.bar-top{display:flex;justify-content:space-between;margin-bottom:5px;}
+.bar-top-me{font-size:12px;font-weight:600;color:var(--primary);}
+.bar-top-rival{font-size:12px;font-weight:600;color:var(--danger);}
+.bar-track{height:9px;background:var(--border);border-radius:5px;overflow:hidden;display:flex;}
+.bar-fill-me{height:100%;background:linear-gradient(90deg,#6B46C1,#2DD4BF);border-radius:5px 0 0 5px;transition:width 0.7s;}
+.bar-fill-rival{height:100%;background:linear-gradient(90deg,#EF4444,#f87171);border-radius:0 5px 5px 0;transition:width 0.7s;}
+.bar-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.assets-card{background:var(--card-bg);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.assets-card-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;}
+.assets-two-cols{display:grid;grid-template-columns:1fr 1px 1fr;}
+.col-divider{background:var(--border);margin:0 10px;}
+.col-head{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:5px;}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-me{background:var(--primary);}.dot-rv{background:var(--danger);}
+.achip{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);}
+.achip:last-child{border-bottom:none;}
+.achip-ico{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0;}
+.achip-sym{font-size:11px;font-weight:700;}
+.achip-pct{font-size:10px;font-weight:600;}
+.achip-pct.p{color:var(--success);}.achip-pct.n{color:var(--danger);}
+.no-assets{font-size:12px;color:var(--muted);text-align:center;padding:12px 0;}
+.cal-card{background:var(--card-bg);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.cal-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;}
+.cal-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.cal-row:last-child{border-bottom:none;}
+.cal-num{font-size:11px;font-weight:700;color:var(--muted);width:24px;flex-shrink:0;}
+.cal-name{flex:1;font-size:14px;font-weight:600;}
+.cal-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.cal-badge.win{background:rgba(16,185,129,0.12);color:var(--success);}
+.cal-badge.loss{background:rgba(239,68,68,0.1);color:var(--danger);}
+.cal-badge.now{background:var(--primary);color:white;}
+.cal-badge.pending{background:rgba(107,70,193,0.1);color:var(--primary);}
+.btn-matchup{width:100%;padding:15px;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#6B46C1 0%,#4338a8 50%,#1e5fa8 100%);color:white;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 18px rgba(107,70,193,0.38);transition:all 0.2s;margin-top:16px;}
+.league-tab{flex:1;padding:10px 6px;border:2px solid var(--border);background:var(--bg);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.2s;}
+.league-tab.active{background:var(--primary);color:white;border-color:var(--primary);}
+.rango-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px;border:2px solid transparent;}
+.rango-item.current{border-color:var(--primary);background:rgba(107,70,193,0.06);}
+.rango-item.locked{opacity:0.45;}
+.faq-item{border-bottom:1px solid var(--border);cursor:pointer;}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:14px 0;font-size:14px;font-weight:600;}
+.faq-arrow{color:var(--muted);transition:transform 0.2s;font-size:12px;}
+.faq-item.open .faq-arrow{transform:rotate(180deg);}
+.faq-a{display:none;font-size:13px;color:var(--muted);line-height:1.6;padding-bottom:14px;}
+.faq-item.open .faq-a{display:block;}
+.chat-msg{max-width:80%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;}
+.chat-msg.bot{background:var(--card-bg);color:var(--ink);border-bottom-left-radius:4px;align-self:flex-start;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.chat-msg.user{background:var(--primary);color:white;border-bottom-right-radius:4px;align-self:flex-end;}
+.chat-chip{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;color:var(--ink);transition:all 0.2s;}
+.chat-chip:hover{border-color:var(--primary);color:var(--primary);}
+</style>
+<script>
+// ---- Apps Script Backend ----
+var AS_URL = "https://script.google.com/macros/s/AKfycbyEXckxcjQF6sFcx3lNh_IthEP1Z3UoghB8y6-foLjAV8MwzVUynd-7D2aUFVgSAj9R8A/exec";
+var _currentUID = null;
+var _saveTimeout = null;
+
+function asPost(payload, callback){
+  fetch(AS_URL, {
+    method:"POST",
+    headers:{"Content-Type":"text/plain"},
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){ if(callback) callback(d); })
+  .catch(function(e){ if(callback) callback({ok:false, error:e.message}); });
+}
+</script>
+</head>
+<body>
+<div id="app-shell">
+<!-- SPLASH -->
+<section class="screen active" data-screen="splash">
+  <div class="splash-content">
+    <svg class="splash-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="sg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#fff;stop-opacity:0.95"/><stop offset="100%" style="stop-color:#fff;stop-opacity:0.6"/></linearGradient></defs>
+      <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#sg)"/>
+      <path d="M35 50 L45 60 L65 35" stroke="#6B46C1" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M40 55 L50 45 L60 55 L70 45" stroke="#6B46C1" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1 class="splash-title">Investa</h1>
+    <p class="splash-subtitle">Aprende, invierte y compite en el mundo del trading</p>
+    <button class="splash-btn" id="splash-start-btn">Comenzar</button>
+  </div>
+</section>
+<!-- LOGIN -->
+<section class="screen" data-screen="login">
+  <div class="screen-body">
+  <div style="padding-top:48px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <svg width="56" height="56" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto 12px;display:block;">
+        <defs><linearGradient id="lg2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#6B46C1"/><stop offset="100%" style="stop-color:#2DD4BF"/></linearGradient></defs>
+        <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#lg2)"/>
+        <path d="M35 50 L45 60 L65 35" stroke="white" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 style="font-size:26px;font-weight:800;margin-bottom:4px;">Bienvenido</h2>
+      <p style="color:var(--muted);font-size:14px;">Inicia sesion en tu cuenta</p>
+    </div>
+    <div class="input-group"><label>Correo electronico</label><input type="email" id="email" class="input" placeholder="tu@correo.com"></div>
+    <div class="input-group"><label>Contrasena</label><input type="password" id="password" class="input" placeholder="Minimo 6 caracteres"></div>
+    <button class="btn btn-primary" id="login-btn" style="margin-bottom:16px;">Iniciar sesion</button>
+    <div style="text-align:center;color:var(--muted);font-size:13px;margin:16px 0;">o continua con</div>
+    <div class="social-buttons">
+      <button class="social-btn" id="google-login-btn"><span>G</span> Google</button>
+      <button class="social-btn" id="apple-login-btn"><span>A</span> Apple</button>
+    </div>
+    <p style="text-align:center;margin-top:24px;font-size:14px;">¿No tienes cuenta? <a href="#" id="register-link" style="color:var(--primary);text-decoration:none;font-weight:600;">Registrate</a></p>
+  </div>
+  </div>
+</section>
+
+<!-- REGISTER -->
+<section class="screen" data-screen="register">
+  <div class="screen-body">
+  <div style="padding-top:32px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <svg width="56" height="56" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto 12px;display:block;">
+        <defs><linearGradient id="lg3" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#6B46C1"/><stop offset="100%" style="stop-color:#2DD4BF"/></linearGradient></defs>
+        <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#lg3)"/>
+        <path d="M35 50 L45 60 L65 35" stroke="white" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 style="font-size:26px;font-weight:800;margin-bottom:4px;">Crea tu cuenta</h2>
+      <p style="color:var(--muted);font-size:14px;">Unete a Investa Fantasy</p>
+    </div>
+    <div class="input-group">
+      <label>Nombre de usuario</label>
+      <input type="text" id="reg-name" class="input" placeholder="Como te llamaran en la liga" maxlength="20">
+    </div>
+    <div class="input-group">
+      <label>Correo electronico</label>
+      <input type="email" id="reg-email" class="input" placeholder="tu@correo.com">
+    </div>
+    <div class="input-group">
+      <label>Contrasena</label>
+      <input type="password" id="reg-password" class="input" placeholder="Minimo 6 caracteres">
+    </div>
+    <div class="input-group">
+      <label>Confirmar contrasena</label>
+      <input type="password" id="reg-password2" class="input" placeholder="Repite tu contrasena">
+    </div>
+    <button class="btn btn-primary" id="register-btn" style="margin-bottom:12px;">Crear cuenta</button>
+    <p style="text-align:center;font-size:14px;">¿Ya tienes cuenta? <a href="#" id="back-login-link" style="color:var(--primary);text-decoration:none;font-weight:600;">Inicia sesion</a></p>
+  </div>
+  </div>
+</section>
+
+<!-- HOME -->
+<section class="screen" data-screen="home">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Inicio</h2></div><div class="balance" id="main-balance">$0.00</div></div>
+  <div class="screen-body">
+  <div class="stat-card">
+    <div class="stat-row"><span class="stat-label">Balance total</span><span class="stat-value" id="home-total-balance">$0.00</span></div>
+    <div class="stat-row"><span class="stat-label">En inversiones</span><span class="stat-value" id="home-invested">$0.00</span></div>
+    <div class="stat-row"><span class="stat-label">Ganancia/Perdida</span><span class="stat-value" id="home-profit" style="color:var(--success);">+$0.00</span></div>
+  </div>
+  <div class="card-title" style="margin-bottom:12px;">Acciones rapidas</div>
+  <div class="quick-actions">
+    <button class="quick-action-btn" data-nav="markets"><div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14v7"/><path d="M20 10v11"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18v3"/><path d="M8 14v7"/></svg></div><div class="quick-action-label">Mercados</div></button>
+    <button class="quick-action-btn" data-nav="portfolio"><div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></div><div class="quick-action-label">Mi Cartera</div></button>
+    <button class="quick-action-btn" data-nav="league"><div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg></div><div class="quick-action-label">Mi Liga</div></button>
+    <button class="quick-action-btn" data-nav="learn"><div class="quick-action-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg></div><div class="quick-action-label">Cursos</div></button>
+  </div>
+  <div class="card"><div class="card-title">Recomendacion del dia</div><h3 style="font-size:16px;margin-bottom:8px;">Diversifica tu cartera</h3><p style="font-size:14px;color:var(--muted);line-height:1.6;">No pongas todos tus huevos en la misma canasta.</p></div>
+  <div id="home-portfolio-preview"></div>
+
+  </div>
+</section>
+<!-- PORTFOLIO -->
+<section class="screen" data-screen="portfolio">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Mi Cartera</h2></div><div class="balance" id="portfolio-balance">$0.00</div></div>
+  <div class="screen-body">
+  <div class="stat-card">
+    <div class="stat-row"><span class="stat-label">Total invertido</span><span class="stat-value" id="portfolio-invested">$0.00</span></div>
+    <div class="stat-row"><span class="stat-label">Valor actual</span><span class="stat-value" id="portfolio-current">$0.00</span></div>
+    <div class="stat-row"><span class="stat-label">Ganancia/Perdida</span><span class="stat-value" id="portfolio-profit">+$0.00 (0%)</span></div>
+  </div>
+  <div class="card"><div class="card-title">Mis inversiones</div><div id="portfolio-list"></div></div>
+  <div class="card"><div class="card-title">Historial</div><div id="transaction-history"></div></div>
+
+  </div>
+</section>
+<!-- MARKETS -->
+<section class="screen" data-screen="markets">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Mercados</h2></div><div class="balance" id="markets-balance">$0.00</div></div>
+  <div class="screen-body">
+  <div class="card"><div class="card-title">Divisas</div><div id="forex-list"></div></div>
+  <div class="card"><div class="card-title">Criptomonedas</div><div id="crypto-list"></div></div>
+  <div class="card"><div class="card-title">Acciones</div><div id="stocks-list"></div></div>
+
+  </div>
+</section>
+<!-- LEAGUE -->
+<section class="screen" data-screen="league">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Mi Liga</h2></div><div class="balance" id="league-balance">$0.00</div></div>
+  <div class="screen-body">
+
+    <!-- TABS -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="league-tab active" data-ltab="amigos" onclick="switchLeagueTab('amigos')">👥 Mis Ligas</button>
+      <button class="league-tab" data-ltab="rangos" onclick="switchLeagueTab('rangos')">🏅 Rangos</button>
+      <button class="league-tab" data-ltab="nacional" onclick="switchLeagueTab('nacional')">🌎 Nacional</button>
+    </div>
+
+    <!-- TAB: MIS LIGAS -->
+    <div id="ltab-amigos">
+      <!-- Liga de amigos pregrabada -->
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <h3 style="font-size:16px;font-weight:700;">Liga Investa Friends</h3>
+            <p style="font-size:12px;color:var(--muted);">Privada · 8 miembros</p>
+          </div>
+          <span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);">Activa</span>
+        </div>
+        <table class="league-table"><thead><tr><th>Pos</th><th>Usuario</th><th>Inv.</th><th>% Gan.</th></tr></thead><tbody id="league-tbody"></tbody></table>
+        <div class="stat-card" style="margin-top:12px;margin-bottom:0;">
+          <div class="stat-row"><span class="stat-label">Tu ranking</span><span class="stat-value" id="user-rank">#4</span></div>
+          <div class="stat-row"><span class="stat-label">Ganancia semanal</span><span class="stat-value" id="user-weekly-gain" style="color:var(--success);">+0.0%</span></div>
+        </div>
+      </div>
+      <button class="btn-matchup" id="go-matchup-btn" style="margin-bottom:16px;">Ver enfrentamiento de la semana</button>
+
+      <!-- Crear liga -->
+      <div class="card">
+        <div class="card-title">➕ Crear nueva liga</div>
+        <div class="input-group" style="margin-bottom:12px;">
+          <label>Nombre de la liga</label>
+          <input type="text" id="new-league-name" class="input" placeholder="Ej: Liga con mis amigos" maxlength="30">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px;">Tipo</label>
+          <div style="display:flex;gap:8px;">
+            <button class="league-type-btn active" data-type="privada" onclick="selectLeagueType('privada')" style="flex:1;padding:10px;border:2px solid var(--primary);border-radius:10px;background:rgba(107,70,193,0.08);font-size:13px;font-weight:600;cursor:pointer;color:var(--primary);">🔒 Privada</button>
+            <button class="league-type-btn" data-type="publica" onclick="selectLeagueType('publica')" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;background:var(--bg);font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);">🌐 Pública</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="create-league-btn">Crear liga</button>
+        <div id="my-leagues-list" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- TAB: RANGOS POR XP -->
+    <div id="ltab-rangos" style="display:none;">
+      <div class="card" style="margin-bottom:12px;text-align:center;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Tu rango actual</div>
+        <div id="rango-actual-badge" style="font-size:32px;margin-bottom:4px;">🥉</div>
+        <div id="rango-actual-nombre" style="font-size:18px;font-weight:800;color:var(--primary);">Bronce I</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;" id="rango-xp-info">0 / 200 XP para avanzar</div>
+        <div class="progress-bar" style="margin-top:10px;"><div class="progress-fill" id="rango-progress" style="width:0%"></div></div>
+      </div>
+      <div class="card-title" style="margin-bottom:12px;">Todos los rangos</div>
+      <div id="rangos-list"></div>
+    </div>
+
+    <!-- TAB: RANKING NACIONAL -->
+    <div id="ltab-nacional" style="display:none;">
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">Ranking Nacional Investa</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Top traders de la plataforma esta semana</p>
+        <table class="league-table"><thead><tr><th>Pos</th><th>Usuario</th><th>Rango</th><th>% Gan.</th></tr></thead>
+        <tbody id="nacional-tbody"></tbody></table>
+      </div>
+      <div class="stat-card">
+        <div class="stat-row"><span class="stat-label">Tu posicion nacional</span><span class="stat-value" id="nacional-rank">#247</span></div>
+        <div class="stat-row"><span class="stat-label">Percentil</span><span class="stat-value" style="color:var(--accent);">Top 15%</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- LEARN -->
+<section class="screen" data-screen="learn">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Aprende</h2></div><div class="balance" id="learn-balance">$0.00</div></div>
+  <div class="screen-body">
+  <div class="stat-card"><div class="stat-row"><span class="stat-label">Tu nivel</span><span class="stat-value" id="user-level">1</span></div><div class="stat-row"><span class="stat-label">XP actual</span><span class="stat-value"><span id="user-xp">0</span> / <span id="user-xp-max">100</span></span></div><div class="progress-bar"><div class="progress-fill" id="xp-progress" style="width:0%"></div></div></div>
+  <div class="card"><div class="card-title">Cursos de texto</div><div id="courses-list"></div></div>
+  <div class="card"><div class="card-title">Cursos en video</div><div id="video-courses-list"></div></div>
+  <div class="card"><div class="card-title">Certificaciones y diplomados</div><div id="certs-list"></div></div>
+
+  </div>
+</section>
+<!-- PROFILE -->
+<section class="screen" data-screen="profile">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Mi Perfil</h2></div>
+    <button id="edit-profile-btn" style="background:none;border:none;cursor:pointer;padding:6px;color:var(--primary);display:flex;align-items:center;border-radius:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
+  </div>
+  <div class="screen-body">
+  <div class="card" style="text-align:center;"><div class="profile-avatar" id="profile-avatar">👤</div><h3 style="font-size:20px;margin-bottom:4px;" id="profile-name">Usuario</h3><p style="font-size:14px;color:var(--muted);margin-bottom:12px;" id="profile-email">usuario@investa.com</p><div class="level-badge"><span>⭐</span><span>Nivel <span id="profile-level">1</span></span></div></div>
+  <div class="card"><div class="card-title">Estadisticas</div><div class="stat-row"><span class="stat-label">Balance total</span><span class="stat-value" id="profile-balance">$0.00</span></div><div class="stat-row"><span class="stat-label">Total invertido</span><span class="stat-value" id="profile-invested">$0.00</span></div><div class="stat-row"><span class="stat-label">Ganancia total</span><span class="stat-value" id="profile-profit">$0.00</span></div><div class="stat-row"><span class="stat-label">Transacciones</span><span class="stat-value" id="profile-transactions">0</span></div><div class="stat-row"><span class="stat-label">Cursos completados</span><span class="stat-value" id="profile-courses">0</span></div><div class="stat-row"><span class="stat-label">🪙 Investa Tokens</span><span class="stat-value" id="profile-tokens" style="color:#F59E0B;">100</span></div></div>
+  <div class="card"><div class="card-title">Logros</div><div id="achievements-list"></div></div>
+  <button class="btn btn-danger" id="logout-btn" style="margin-top:12px;">Cerrar sesion</button>
+
+  </div>
+</section>
+<!-- EDIT PROFILE -->
+<section class="screen" data-screen="edit-profile">
+  <div class="header"><div class="header-left"><button id="edit-profile-back-btn" class="menu-btn" style="font-size:20px;">←</button><h2 style="font-size:18px;font-weight:600;">Editar perfil</h2></div><button id="save-profile-btn" style="background:var(--primary);color:white;border:none;border-radius:10px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;">Guardar</button></div>
+  <div class="screen-body">
+  <div style="text-align:center;margin-bottom:24px;"><div id="edit-avatar-preview" style="width:88px;height:88px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 8px;">👤</div><p style="font-size:13px;color:var(--muted);">Elige tu icono abajo</p></div>
+  <div class="card"><div class="card-title">Elige tu icono</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;" id="avatar-picker"><button class="avatar-opt" data-avatar="🦁">🦁</button><button class="avatar-opt" data-avatar="🐯">🐯</button><button class="avatar-opt" data-avatar="🦊">🦊</button><button class="avatar-opt" data-avatar="🐺">🐺</button></div></div>
+  <div class="card"><div class="card-title">Tu nombre</div><input type="text" id="edit-name-input" class="input" placeholder="Escribe tu nombre" maxlength="20"></div>
+
+  </div>
+</section>
+<!-- MATCHUP -->
+<section class="screen" data-screen="matchup">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Enfrentamiento</h2></div><div class="balance" id="matchup-balance">$0.00</div></div>
+  <div class="screen-body">
+  <div class="matchup-hero"><div class="jornada-pill" id="m-jornada">● Jornada 1 · En curso</div><div class="matchup-fighters"><div class="fighter"><div class="fighter-avatar me" id="m-me-av">TU</div><div class="fighter-name" id="m-me-name">Tu</div><div class="fighter-pct zero" id="m-me-pct">+0.00%</div></div><div class="vs-center"><div class="vs-word">VS</div><div class="live-chip even" id="m-chip">EN CURSO</div></div><div class="fighter"><div class="fighter-avatar rival" id="m-rv-av">RV</div><div class="fighter-name" id="m-rv-name">Rival</div><div class="fighter-pct zero" id="m-rv-pct">+0.00%</div></div></div></div>
+  <div class="stats-grid"><div class="sg-card"><div class="sg-label">Balance</div><div class="sg-row"><span class="sg-who" id="s-me1">Tu</span><span class="sg-val" style="color:var(--primary);" id="s-me-bal">$0</span></div><div class="sg-row"><span class="sg-who" id="s-rv1">Rival</span><span class="sg-val" style="color:var(--danger);" id="s-rv-bal">$0</span></div></div><div class="sg-card"><div class="sg-label">Invertido</div><div class="sg-row"><span class="sg-who" id="s-me2">Tu</span><span class="sg-val" style="color:var(--primary);" id="s-me-inv">$0</span></div><div class="sg-row"><span class="sg-who" id="s-rv2">Rival</span><span class="sg-val" style="color:var(--danger);" id="s-rv-inv">$0</span></div></div><div class="sg-card"><div class="sg-label">Activos</div><div class="sg-row"><span class="sg-who" id="s-me3">Tu</span><span class="sg-val" style="color:var(--primary);" id="s-me-ast">0</span></div><div class="sg-row"><span class="sg-who" id="s-rv3">Rival</span><span class="sg-val" style="color:var(--danger);" id="s-rv-ast">0</span></div></div><div class="sg-card"><div class="sg-label">Ganancia</div><div class="sg-row"><span class="sg-who" id="s-me4">Tu</span><span class="sg-val" id="s-me-prf">$0</span></div><div class="sg-row"><span class="sg-who" id="s-rv4">Rival</span><span class="sg-val" id="s-rv-prf">$0</span></div></div></div>
+  <div class="bars-card"><div class="bars-title">Comparacion de rendimiento</div><div id="bars-list"></div></div>
+  <div class="assets-card"><div class="assets-card-title">Activos en juego</div><div class="assets-two-cols"><div><div class="col-head"><span class="dot dot-me"></span><span id="ac-me-head" style="color:var(--primary);">Tu</span></div><div id="ac-me-list"></div></div><div class="col-divider"></div><div><div class="col-head"><span class="dot dot-rv"></span><span id="ac-rv-head" style="color:var(--danger);">Rival</span></div><div id="ac-rv-list"></div></div></div></div>
+  <div class="cal-card"><div class="cal-title">Calendario de la liga</div><div id="cal-list"></div></div>
+
+  </div>
+</section>
+<!-- SHOP -->
+<section class="screen" data-screen="shop">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Tienda</h2></div><div style="display:flex;align-items:center;gap:6px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:20px;padding:4px 12px;"><span style="font-size:14px;">🪙</span><span style="font-size:13px;font-weight:700;color:#F59E0B;" id="shop-tokens-count">100</span></div></div>
+  <div class="screen-body">
+  <div style="background:linear-gradient(135deg,#1a0533 0%,#3b1fa8 50%,#0b2d5e 100%);border-radius:20px;padding:24px 20px;margin-bottom:16px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(45,212,191,0.1);"></div>
+    <div style="position:relative;z-index:1;">
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);border-radius:20px;padding:4px 12px;margin-bottom:12px;"><span style="font-size:14px;">⭐</span><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:#FFD700;text-transform:uppercase;">Investa Premium</span></div>
+      <h2 style="color:white;font-size:22px;font-weight:800;margin-bottom:8px;line-height:1.3;">Lleva tu experiencia al siguiente nivel</h2>
+      <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.6;">Todo lo que necesitas para invertir mejor, aprender mas y ganar en la liga.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">Que incluye Premium</div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);"><div style="width:36px;height:36px;background:rgba(16,185,129,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🚫</div><div><div style="font-size:14px;font-weight:600;margin-bottom:2px;">Sin anuncios</div><div style="font-size:12px;color:var(--muted);">Disfruta Investa sin interrupciones</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);"><div style="width:36px;height:36px;background:rgba(107,70,193,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📚</div><div><div style="font-size:14px;font-weight:600;margin-bottom:2px;">Cursos exclusivos</div><div style="font-size:12px;color:var(--muted);">Acceso a contenido avanzado de trading</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);"><div style="width:36px;height:36px;background:rgba(245,158,11,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">💰</div><div><div style="font-size:14px;font-weight:600;margin-bottom:2px;">Dinero virtual extra</div><div style="font-size:12px;color:var(--muted);">+$25,000 adicionales para invertir</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);"><div style="width:36px;height:36px;background:rgba(45,212,191,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🪙</div><div><div style="font-size:14px;font-weight:600;margin-bottom:2px;">Investa Tokens</div><div style="font-size:12px;color:var(--muted);">500 tokens mensuales para canjear</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);"><div style="width:36px;height:36px;background:rgba(239,68,68,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🏆</div><div><div style="font-size:14px;font-weight:600;margin-bottom:2px;">Liga Premium</div><div style="font-size:12px;color:var(--muted);">Acceso a ligas exclusivas con mejores premios</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;"><div style="width:36px;height:36px;background:rgba(91,159,237,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📊</div><div><div style="font-size:14px;font-weight:600;margin-bottom:2px;">Analisis avanzado</div><div style="font-size:12px;color:var(--muted);">Graficas y metricas detalladas de tu cartera</div></div></div>
+  </div>
+  <div class="card-title" style="margin-bottom:12px;">Elige tu plan</div>
+  <div id="plan-monthly" class="card" style="border:2px solid var(--border);cursor:pointer;margin-bottom:12px;" onclick="selectPlan('monthly')">
+    <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">Mensual</div><div style="font-size:13px;color:var(--muted);">Cancela cuando quieras</div></div><div style="text-align:right;"><div style="font-size:24px;font-weight:800;color:var(--primary);">$99</div><div style="font-size:12px;color:var(--muted);">MXN / mes</div></div></div>
+  </div>
+  <div id="plan-annual" class="card" style="border:2px solid var(--primary);cursor:pointer;margin-bottom:24px;position:relative;" onclick="selectPlan('annual')">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--primary);color:white;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;">AHORRA 15%</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">Anual</div><div style="font-size:13px;color:var(--muted);">Equivale a $83/mes</div></div><div style="text-align:right;"><div style="font-size:24px;font-weight:800;color:var(--primary);">$999</div><div style="font-size:12px;color:var(--muted);">MXN / ano</div></div></div>
+  </div>
+  <button id="subscribe-btn" class="btn btn-primary" style="font-size:17px;padding:16px;border-radius:14px;">Suscribirme · $999 MXN/ano</button>
+  <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:12px;">Puedes cancelar en cualquier momento desde tu perfil.</p>
+
+  <!-- Paquetes de Investa Tokens -->
+  <div class="card-title" style="margin:20px 0 12px;">🪙 Paquetes de Investa Tokens</div>
+  <div style="display:flex;gap:12px;margin-bottom:24px;">
+    <div style="flex:1;background:var(--card-bg);border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:2px solid var(--border);text-align:center;">
+      <div style="font-size:28px;margin-bottom:6px;">🪙</div>
+      <div style="font-size:20px;font-weight:800;color:#F59E0B;">100</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Investa Tokens</div>
+      <div style="font-size:18px;font-weight:700;color:var(--primary);margin-bottom:12px;">$49 MXN</div>
+      <button class="btn btn-primary btn-small" id="buy-tokens-100" style="width:100%;">Comprar</button>
+    </div>
+    <div style="flex:1;background:linear-gradient(135deg,rgba(245,158,11,0.08) 0%,rgba(107,70,193,0.08) 100%);border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:2px solid #F59E0B;text-align:center;position:relative;">
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F59E0B;color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;">MÁS POPULAR</div>
+      <div style="font-size:28px;margin-bottom:6px;">🪙</div>
+      <div style="font-size:20px;font-weight:800;color:#F59E0B;">500</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Investa Tokens</div>
+      <div style="font-size:18px;font-weight:700;color:var(--primary);margin-bottom:12px;">$199 MXN</div>
+      <button class="btn btn-primary btn-small" id="buy-tokens-500" style="width:100%;">Comprar</button>
+    </div>
+  </div>
+
+  <!-- Paquetes de USD Virtual -->
+  <div class="card-title" style="margin-bottom:12px;">💵 Paquetes de USD Virtual</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+    <div style="background:var(--card-bg);border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:2px solid var(--border);text-align:center;">
+      <div style="font-size:22px;margin-bottom:4px;">💵</div>
+      <div style="font-size:18px;font-weight:800;color:var(--success);">+$5,000</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">USD Virtual</div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:10px;">$49 MXN</div>
+      <button class="btn btn-primary btn-small" id="buy-usd-5k" style="width:100%;font-size:13px;">Obtener</button>
+    </div>
+    <div style="background:var(--card-bg);border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:2px solid var(--border);text-align:center;">
+      <div style="font-size:22px;margin-bottom:4px;">💵</div>
+      <div style="font-size:18px;font-weight:800;color:var(--success);">+$15,000</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">USD Virtual</div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:10px;">$129 MXN</div>
+      <button class="btn btn-primary btn-small" id="buy-usd-15k" style="width:100%;font-size:13px;">Obtener</button>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08) 0%,rgba(45,212,191,0.08) 100%);border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:2px solid var(--success);text-align:center;">
+      <div style="font-size:22px;margin-bottom:4px;">💵</div>
+      <div style="font-size:18px;font-weight:800;color:var(--success);">+$50,000</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">USD Virtual</div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:10px;">$349 MXN</div>
+      <button class="btn btn-primary btn-small" id="buy-usd-50k" style="width:100%;font-size:13px;">Obtener</button>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(107,70,193,0.1) 0%,rgba(45,212,191,0.1) 100%);border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:2px solid var(--primary);text-align:center;position:relative;">
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--primary);color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;">MEJOR VALOR</div>
+      <div style="font-size:22px;margin-bottom:4px;">💵</div>
+      <div style="font-size:18px;font-weight:800;color:var(--success);">+$100,000</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">USD Virtual</div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:10px;">$599 MXN</div>
+      <button class="btn btn-primary btn-small" id="buy-usd-100k" style="width:100%;font-size:13px;">Obtener</button>
+    </div>
+  </div>
+
+  </div>
+</section>
+<!-- SUPPORT -->
+<section class="screen" data-screen="support">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Soporte</h2></div></div>
+  <div class="screen-body">
+
+  <!-- FAQ -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="card-title">Preguntas frecuentes</div>
+    <div id="faq-list">
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span>¿Qué es Investa Fantasy?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Investa es una app de trading simulado donde puedes invertir dinero virtual, aprender sobre los mercados financieros y competir en ligas semanales con otros usuarios sin arriesgar dinero real.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span>¿Cómo funciona el dinero virtual?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Al registrarte recibes $10,000 USD virtuales para invertir en acciones, criptomonedas y divisas. Los precios se actualizan en tiempo real pero el dinero es ficticio, por lo que puedes practicar sin riesgo.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span>¿Cómo funcionan las ligas?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Cada semana compites contra otros jugadores de tu liga. Gana quien tenga el mayor porcentaje de ganancia al final de la semana. La clasificación se actualiza en tiempo real.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span>¿Qué es el XP y para qué sirve?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">El XP (puntos de experiencia) se gana completando cursos. Al acumular suficiente XP subes de nivel, lo que desbloquea beneficios y reconocimiento dentro de la app.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span>¿Qué incluye Premium?</span><span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Premium incluye: app sin anuncios, cursos exclusivos, $25,000 de dinero virtual extra, 500 Investa Tokens mensuales, acceso a ligas Premium y análisis avanzado de cartera. Cuesta $99 MXN/mes o $999 MXN/año.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chatbot -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">🤖</div>
+      <div><div style="font-size:15px;font-weight:600;">Asistente Investa</div><div style="font-size:12px;color:var(--success);display:flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block;"></span>En linea</div></div>
+    </div>
+    <div id="chat-messages" style="height:280px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--bg);">
+      <div class="chat-msg bot">Hola! Soy el asistente de Investa. Puedo ayudarte con dudas sobre trading, inversiones y el funcionamiento de la app. ¿En qué te puedo ayudar?</div>
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--card-bg);">
+      <input type="text" id="chat-input" class="input" placeholder="Escribe tu pregunta..." style="flex:1;padding:10px 14px;font-size:14px;" onkeydown="if(event.key==='Enter')sendChat()">
+      <button onclick="sendChat()" style="background:var(--primary);color:white;border:none;border-radius:10px;padding:10px 16px;cursor:pointer;font-size:18px;flex-shrink:0;">↑</button>
+    </div>
+  </div>
+
+  <!-- Chips de sugerencias -->
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+    <button class="chat-chip" onclick="askChip('¿Qué es una acción?')">¿Qué es una acción?</button>
+    <button class="chat-chip" onclick="askChip('¿Cómo diversificar?')">¿Cómo diversificar?</button>
+    <button class="chat-chip" onclick="askChip('¿Qué es Bitcoin?')">¿Qué es Bitcoin?</button>
+    <button class="chat-chip" onclick="askChip('¿Qué es el forex?')">¿Qué es el forex?</button>
+    <button class="chat-chip" onclick="askChip('¿Cómo reducir riesgo?')">¿Cómo reducir riesgo?</button>
+  </div>
+
+  </div>
+</section>
+<!-- RETOS -->
+<section class="screen" data-screen="retos">
+  <div class="header"><div class="header-left"><button class="js-menu-btn menu-btn">☰</button><h2 style="font-size:18px;font-weight:600;">Retos y Torneos</h2></div></div>
+  <div class="screen-body">
+
+    <!-- Desafíos diarios -->
+    <div class="card">
+      <div class="card-title">⚡ Desafíos diarios</div>
+      <div id="retos-desafios"></div>
+    </div>
+
+    <!-- Torneos rápidos -->
+    <div class="card">
+      <div class="card-title">🏁 Torneos rápidos</div>
+      <div id="retos-torneos"></div>
+    </div>
+
+    <!-- Liga de retos -->
+    <div class="card">
+      <div class="card-title">🏆 Liga de retos</div>
+      <div id="retos-liga"></div>
+    </div>
+
+    <!-- Eventos por temporada -->
+    <div class="card" style="background:linear-gradient(135deg,rgba(107,70,193,0.08) 0%,rgba(45,212,191,0.08) 100%);border:1px solid rgba(107,70,193,0.2);">
+      <div class="card-title">🌟 Eventos por temporada</div>
+      <div id="retos-eventos"></div>
+    </div>
+
+  </div>
+</section>
+<!-- NAV -->
+<nav class="tabs-bottom" id="tabs-bottom">
+  <button class="tab-item active" data-tab="home"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><div>Inicio</div></button>
+  <button class="tab-item" data-tab="portfolio"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg><div>Cartera</div></button>
+  <button class="tab-item" data-tab="markets"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v5"/><path d="M16 14v7"/><path d="M20 10v11"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18v3"/><path d="M8 14v7"/></svg><div>Mercados</div></button>
+  <button class="tab-item" data-tab="league"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg><div>Liga</div></button>
+  <button class="tab-item" data-tab="profile"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.925 20.056a6 6 0 0 0-11.851.001"/><circle cx="12" cy="11" r="4"/><circle cx="12" cy="12" r="10"/></svg><div>Perfil</div></button>
+</nav>
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-header"><h3>Investa</h3><p id="drawer-user-name">Panel de navegacion</p></div>
+  <div class="drawer-item" data-nav="home">Inicio</div>
+  <div class="drawer-item" data-nav="portfolio">Mi Cartera</div>
+  <div class="drawer-item" data-nav="markets">Mercados</div>
+  <div class="drawer-item" data-nav="league">Mi Liga</div>
+  <div class="drawer-item" data-nav="matchup">Enfrentamiento</div>
+  <div class="drawer-item" data-nav="learn">Cursos</div>
+  <div class="drawer-item" data-nav="retos">Retos y Torneos</div>
+  <div class="drawer-item" data-nav="profile">Mi Perfil</div>
+  <div class="drawer-item" data-nav="shop" style="color:var(--primary);font-weight:600;">Tienda</div>
+  <div class="drawer-item" data-nav="support">Soporte</div>
+</aside>
+<!-- MODALES -->
+<div class="modal-overlay" id="buyModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Comprar <span id="modal-asset-name"></span></h3><button class="modal-close" id="close-buy-modal">x</button></div>
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:13px;color:var(--muted);">Tendencia 7 dias</div>
+        <div style="display:flex;gap:4px;">
+          <button class="chart-type-btn active" data-type="line" onclick="switchChartType('line','buy')">Lineal</button>
+          <button class="chart-type-btn" data-type="candlestick" onclick="switchChartType('candlestick','buy')">Velas</button>
+          <button class="chart-type-btn" data-type="bar" onclick="switchChartType('bar','buy')">Barras</button>
+        </div>
+      </div>
+      <div id="chart-container"><canvas id="price-chart"></canvas></div>
+    </div>
+    <div style="margin-bottom:20px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">Precio actual:</span><span style="font-weight:600;" id="modal-asset-price">$0.00</span></div><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">Cambio 24h:</span><span style="font-weight:600;" id="modal-asset-change">+0.00%</span></div><div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Tu balance:</span><span style="font-weight:600;color:var(--primary);" id="modal-balance">$0.00</span></div></div>
+    <div class="input-group"><label>Cantidad a invertir</label><input type="number" id="buy-amount" class="input" placeholder="0.00" min="0" step="0.01"></div>
+    <div style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:20px;"><div style="display:flex;justify-content:space-between;font-size:14px;"><span>Total:</span><span style="font-weight:600;" id="modal-total">$0.00</span></div></div>
+    <button class="btn btn-primary" id="confirm-buy-btn">Comprar</button>
+    <button class="btn btn-secondary" id="cancel-buy-btn" style="margin-top:8px;">Cancelar</button>
+  </div>
+</div>
+<div class="modal-overlay" id="sellModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Vender <span id="sell-modal-asset-name"></span></h3><button class="modal-close" id="close-sell-modal">x</button></div>
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:13px;color:var(--muted);">Tendencia 7 dias</div>
+        <div style="display:flex;gap:4px;">
+          <button class="chart-type-btn active" data-type="line" onclick="switchChartType('line','sell')">Lineal</button>
+          <button class="chart-type-btn" data-type="candlestick" onclick="switchChartType('candlestick','sell')">Velas</button>
+          <button class="chart-type-btn" data-type="bar" onclick="switchChartType('bar','sell')">Barras</button>
+        </div>
+      </div>
+      <div id="sell-chart-container" style="height:160px;background:white;border-radius:12px;padding:8px;position:relative;"><canvas id="sell-price-chart"></canvas></div>
+    </div>
+    <div style="background:var(--bg);border-radius:12px;padding:12px;margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--muted);font-size:13px;">Precio actual:</span><span style="font-weight:600;font-size:13px;" id="sell-modal-current-price">$0.00</span></div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--muted);font-size:13px;">Total invertido:</span><span style="font-weight:600;font-size:13px;" id="sell-modal-investment">$0.00</span></div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--muted);font-size:13px;">Valor actual:</span><span style="font-weight:600;font-size:13px;" id="sell-modal-current-value">$0.00</span></div><div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);font-size:13px;">Ganancia/Perdida:</span><span style="font-weight:600;font-size:13px;" id="sell-modal-profit">$0.00</span></div></div>
+    <div class="input-group">
+      <label>Cantidad a vender ($)</label>
+      <input type="number" id="sell-amount" class="input" placeholder="0.00" min="0" step="0.01">
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="sell-pct-btn" data-pct="25" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;font-weight:600;cursor:pointer;">25%</button>
+        <button class="sell-pct-btn" data-pct="50" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;font-weight:600;cursor:pointer;">50%</button>
+        <button class="sell-pct-btn" data-pct="75" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;font-weight:600;cursor:pointer;">75%</button>
+        <button class="sell-pct-btn" data-pct="100" style="flex:1;padding:6px;border:1px solid var(--primary);border-radius:8px;background:rgba(107,70,193,0.08);font-size:12px;font-weight:600;cursor:pointer;color:var(--primary);">Todo</button>
+      </div>
+    </div>
+    <div style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:20px;"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;"><span>Recibiras:</span><span style="font-weight:700;color:var(--success);" id="sell-receive">$0.00</span></div><div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--muted);">Ganancia estimada:</span><span style="font-weight:600;" id="sell-gain-est">$0.00</span></div></div>
+    <button class="btn btn-danger" id="confirm-sell-btn">Vender</button>
+    <button class="btn btn-secondary" id="cancel-sell-btn" style="margin-top:8px;">Cancelar</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// Funciones globales para FAQ y Chatbot
+function toggleFaq(el){el.classList.toggle("open");}
+
+// fc y MP globales para que mkChart pueda acceder
+function fc(v){return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+var MP={
+  "USD/MXN":{price:18.45,change:0,icon:"$",color:"#6B46C1"},
+  "USD/JPY":{price:158.20,change:0,icon:"¥",color:"#6B46C1"},
+  "EUR/USD":{price:1.08,change:0,icon:"€",color:"#3B82F6"},
+  "GBP/USD":{price:1.27,change:0,icon:"£",color:"#8B5CF6"},
+  "USD/CAD":{price:1.36,change:0,icon:"C",color:"#10B981"},
+  "USD/CHF":{price:0.91,change:0,icon:"F",color:"#F59E0B"},
+  "AUD/USD":{price:0.65,change:0,icon:"A",color:"#2DD4BF"},
+  "USD/BRL":{price:5.05,change:0,icon:"R",color:"#EF4444"},
+  "BTC":{price:63450,change:0,icon:"₿",color:"#F59E0B"},
+  "ETH":{price:3150,change:0,icon:"Ξ",color:"#3B82F6"},
+  "SOL":{price:168,change:0,icon:"S",color:"#8B5CF6"},
+  "BNB":{price:580,change:0,icon:"B",color:"#F59E0B"},
+  "XRP":{price:0.52,change:0,icon:"X",color:"#2DD4BF"},
+  "ADA":{price:0.45,change:0,icon:"A",color:"#3B82F6"},
+  "DOGE":{price:0.12,change:0,icon:"D",color:"#F59E0B"},
+  "AVAX":{price:35,change:0,icon:"A",color:"#EF4444"},
+  "LINK":{price:14,change:0,icon:"L",color:"#3B82F6"},
+  "DOT":{price:7,change:0,icon:"D",color:"#E879F9"},
+  "LTC":{price:85,change:0,icon:"L",color:"#a0a0a0"},
+  "AAPL":{price:226.40,change:0,icon:"A",color:"#2DD4BF"},
+  "AMZN":{price:183.20,change:0,icon:"A",color:"#F59E0B"},
+  "TSLA":{price:244.90,change:0,icon:"T",color:"#EF4444"},
+  "GOOGL":{price:175,change:0,icon:"G",color:"#3B82F6"},
+  "MSFT":{price:420,change:0,icon:"M",color:"#2DD4BF"},
+  "NVDA":{price:880,change:0,icon:"N",color:"#10B981"},
+  "META":{price:510,change:0,icon:"M",color:"#3B82F6"},
+  "NFLX":{price:630,change:0,icon:"N",color:"#EF4444"},
+  "UBER":{price:72,change:0,icon:"U",color:"#6B46C1"},
+  "AMD":{price:170,change:0,icon:"A",color:"#EF4444"},
+  "COIN":{price:220,change:0,icon:"C",color:"#3B82F6"}
+};
+
+function gChart(sym){
+  // Genera datos simulados como fallback
+  var cp=MP[sym]?MP[sym].price:100, lb=[], closes=[], opens=[], highs=[], lows=[], now=new Date(), pr=cp*.92;
+  var totalCandles=21;
+  for(var i=totalCandles;i>=0;i--){
+    var d=new Date(now); d.setHours(d.getHours()-i*8);
+    lb.push(i%3===0?d.toLocaleDateString("es-MX",{month:"short",day:"numeric"}):"");
+    var open=pr;
+    pr=pr+(cp-pr)/(i+1)+(Math.random()-.5)*cp*.008;
+    pr=Math.max(pr,cp*.01);
+    var close=parseFloat(pr.toFixed(4)), swing=cp*.004;
+    highs.push(parseFloat((Math.max(open,close)+Math.random()*swing).toFixed(4)));
+    lows.push(parseFloat((Math.min(open,close)-Math.random()*swing*.5).toFixed(4)));
+    closes.push(close); opens.push(parseFloat(open.toFixed(4)));
+  }
+  closes[closes.length-1]=cp;
+  return{labels:lb,closes:closes,opens:opens,highs:highs,lows:lows};
+}
+
+function gChartReal(sym, canvasId, col, type){
+  var cryptoMap={"BTC":"BTCUSDT","ETH":"ETHUSDT","SOL":"SOLUSDT","BNB":"BNBUSDT",
+    "XRP":"XRPUSDT","ADA":"ADAUSDT","DOGE":"DOGEUSDT","AVAX":"AVAXUSDT",
+    "LINK":"LINKUSDT","DOT":"DOTUSDT","LTC":"LTCUSDT"};
+  var stockList=["AAPL","AMZN","TSLA","GOOGL","MSFT","NVDA","META","NFLX","UBER","AMD","COIN"];
+  var isCrypto=!!cryptoMap[sym];
+  var isStock=stockList.indexOf(sym)!==-1;
+
+  function buildChart(data){ mkChart(canvasId,sym,col,type,data); }
+
+  if(isCrypto){
+    // Binance klines - 21 velas de 8h = 7 dias
+    fetch("https://api.binance.com/api/v3/klines?symbol="+cryptoMap[sym]+"&interval=8h&limit=21")
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d||!d.length){buildChart(gChart(sym));return;}
+        var labels=[],opens=[],highs=[],lows=[],closes=[];
+        d.forEach(function(k,i){
+          var dt=new Date(k[0]);
+          labels.push(i%3===0?dt.toLocaleDateString("es-MX",{month:"short",day:"numeric"}):"");
+          opens.push(parseFloat(k[1]));highs.push(parseFloat(k[2]));
+          lows.push(parseFloat(k[3]));closes.push(parseFloat(k[4]));
+        });
+        buildChart({labels:labels,closes:closes,opens:opens,highs:highs,lows:lows});
+      }).catch(function(){buildChart(gChart(sym));});
+
+  } else if(isStock){
+    // Yahoo Finance via allorigins - datos horarios 7 dias
+    var url="https://query1.finance.yahoo.com/v8/finance/chart/"+sym+"?interval=1h&range=7d";
+    fetch("https://api.allorigins.win/get?url="+encodeURIComponent(url))
+      .then(function(r){return r.json();})
+      .then(function(w){
+        try{
+          var d=JSON.parse(w.contents);
+          var res=d.chart.result[0];
+          var timestamps=res.timestamp;
+          var q=res.indicators.quote[0];
+          if(!timestamps||!q.close||!q.close.length){buildChart(gChart(sym));return;}
+          var labels=[],opens=[],highs=[],lows=[],closes=[];
+          var step=Math.max(1,Math.floor(timestamps.length/42));
+          timestamps.forEach(function(ts,i){
+            if(i%step!==0&&i!==timestamps.length-1) return;
+            if(q.close[i]==null) return;
+            var dt=new Date(ts*1000);
+            labels.push(i===0||i%Math.floor(timestamps.length/7)===0?
+              dt.toLocaleDateString("es-MX",{month:"short",day:"numeric"}):"");
+            opens.push(q.open[i]||q.close[i]);
+            highs.push(q.high[i]||q.close[i]);
+            lows.push(q.low[i]||q.close[i]);
+            closes.push(q.close[i]);
+          });
+          buildChart({labels:labels,closes:closes,opens:opens,highs:highs,lows:lows});
+        }catch(e){buildChart(gChart(sym));}
+      }).catch(function(){buildChart(gChart(sym));});
+
+  } else {
+    // Forex - datos simulados (APIs de forex historico con CORS son de pago)
+    buildChart(gChart(sym));
+  }
+}
+
+function mkChart(cid,sym,col,type,preData){
+  var c=document.getElementById(cid);if(!c)return null;
+  var cd=preData||gChart(sym);
+  type=type||"line";
+  var allVals=cd.closes.concat(cd.highs,cd.lows);
+  var minV=Math.min.apply(null,allVals);
+  var maxV=Math.max.apply(null,allVals);
+  var pad=(maxV-minV)*0.3||minV*0.02;
+  var yAxis={min:parseFloat((minV-pad).toFixed(4)),max:parseFloat((maxV+pad).toFixed(4)),grid:{color:"#E5E5EA"},ticks:{color:"#8A8A99",font:{size:10},callback:function(v){return v>=1000?"$"+(v/1e3).toFixed(1)+"k":"$"+v.toFixed(2);}}};
+  var xAxis={grid:{display:false},ticks:{color:"#8A8A99",font:{size:10},maxRotation:0,maxTicksLimit:5}};
+  var cfg;
+  if(type==="line"){
+    cfg={type:"line",data:{labels:cd.labels,datasets:[{data:cd.closes,borderColor:col,backgroundColor:"rgba(107,70,193,0.06)",borderWidth:2.5,fill:true,tension:.45,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:col,pointHoverBorderColor:"#fff",pointHoverBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(x){return" "+fc(x.parsed.y);}}}},scales:{x:xAxis,y:yAxis}}};
+  } else if(type==="candlestick"){
+    var bd=cd.closes.map(function(c,i){return{o:cd.opens[i],h:cd.highs[i],l:cd.lows[i],c:c};});
+    var bg=bd.map(function(d){return d.c>=d.o?"rgba(16,185,129,0.85)":"rgba(239,68,68,0.85)";});
+    var bc2=bd.map(function(d){return d.c>=d.o?"#10B981":"#EF4444";});
+    cfg={type:"bar",data:{labels:cd.labels,datasets:[
+      {data:bd.map(function(d){return[Math.min(d.o,d.c),Math.max(d.o,d.c)];}),backgroundColor:bg,borderColor:bc2,borderWidth:1,borderSkipped:false,barPercentage:0.7},
+      {data:bd.map(function(d){return[d.l,d.h];}),backgroundColor:bc2,borderColor:bc2,borderWidth:1,borderSkipped:false,barPercentage:0.12}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(x){var d=bd[x.dataIndex];return"A:"+fc(d.o)+" M:"+fc(d.h)+" m:"+fc(d.l)+" C:"+fc(d.c);}}}},scales:{x:xAxis,y:yAxis}}};
+  } else {
+    var oc=cd.closes.map(function(c,i){return c>=cd.opens[i]?"rgba(16,185,129,0.75)":"rgba(239,68,68,0.75)";});
+    cfg={type:"bar",data:{labels:cd.labels,datasets:[{data:cd.closes.map(function(c,i){return[cd.lows[i],cd.highs[i]];}),backgroundColor:oc,borderColor:oc,borderWidth:1,borderRadius:2,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(x){var i=x.dataIndex;return"Max:"+fc(cd.highs[i])+" Min:"+fc(cd.lows[i])+" Cierre:"+fc(cd.closes[i]);}}}},scales:{x:xAxis,y:yAxis}}};
+  }
+  if(window._cBC&&window._cBC.canvas&&window._cBC.canvas.id===cid){window._cBC.destroy();window._cBC=null;}
+  if(window._cSC&&window._cSC.canvas&&window._cSC.canvas.id===cid){window._cSC.destroy();window._cSC=null;}
+  var instance=new Chart(c,cfg);
+  if(cid==="price-chart") window._cBC=instance;
+  if(cid==="sell-price-chart") window._cSC=instance;
+  return instance;
+}
+
+function switchChartType(type,modal){
+  var isBuy=modal==="buy";
+  var sym=isBuy?(window._curBuySym||"BTC"):(window._curSellSym||"BTC");
+  var col=isBuy?"#2DD4BF":"#EF4444";
+  var modalId=isBuy?"buyModal":"sellModal";
+  var canvasId=isBuy?"price-chart":"sell-price-chart";
+  document.querySelectorAll("#"+modalId+" .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type===type);});
+  if(isBuy){if(window._cBC){window._cBC.destroy();window._cBC=null;}gChartReal(sym,canvasId,col,type);}
+  else{if(window._cSC){window._cSC.destroy();window._cSC=null;}gChartReal(sym,canvasId,col,type);}
+}
+
+var KB=[
+  {k:["accion","acciones","stock","stocks"],r:"Una acción es una parte proporcional del capital de una empresa. Al comprar acciones te conviertes en socio de esa empresa y puedes ganar si su valor sube o recibir dividendos. Ejemplos: AAPL (Apple), TSLA (Tesla), AMZN (Amazon)."},
+  {k:["bitcoin","btc","criptomoneda","cripto","crypto"],r:"Bitcoin (BTC) es la primera criptomoneda del mundo, creada en 2009. Es una moneda digital descentralizada que no depende de ningún banco o gobierno. Su precio es muy volátil, lo que significa que puede subir o bajar mucho en poco tiempo."},
+  {k:["ethereum","eth"],r:"Ethereum (ETH) es la segunda criptomoneda más grande. Además de ser una moneda, es una plataforma que permite crear contratos inteligentes y aplicaciones descentralizadas (dApps)."},
+  {k:["solana","sol"],r:"Solana (SOL) es una criptomoneda conocida por su velocidad y bajas comisiones. Es una plataforma blockchain de alto rendimiento usada para NFTs, DeFi y aplicaciones descentralizadas."},
+  {k:["forex","divisa","divisas","moneda","tipo de cambio"],r:"El mercado Forex (Foreign Exchange) es donde se intercambian monedas de diferentes países. Es el mercado más grande del mundo. En Investa puedes operar pares como USD/MXN (dólar vs peso mexicano)."},
+  {k:["diversificar","diversificacion","cartera","portafolio"],r:"Diversificar significa invertir en diferentes tipos de activos para reducir el riesgo. Si tienes todo en una sola inversión y baja, pierdes todo. Con diversificación, si un activo baja otro puede subir y compensar."},
+  {k:["riesgo","reducir riesgo","gestion de riesgo"],r:"Para reducir riesgo en trading: 1) Diversifica tu cartera. 2) No inviertas más de lo que puedas perder. 3) Usa stop-loss para limitar pérdidas. 4) Investiga antes de invertir. 5) No tomes decisiones emocionales."},
+  {k:["bull","alcista","mercado alcista","subida"],r:"Un mercado alcista (bull market) es cuando los precios suben de forma sostenida. Es un buen momento para invertir y mantener posiciones largas."},
+  {k:["bear","bajista","mercado bajista","caida","baja"],r:"Un mercado bajista (bear market) es cuando los precios caen de forma sostenida (más del 20%). En estos momentos muchos venden para evitar mayores pérdidas."},
+  {k:["analisis tecnico","graficas","grafico","indicador"],r:"El análisis técnico estudia los gráficos de precios y patrones históricos para predecir movimientos futuros. Usa indicadores como medias móviles, RSI y MACD."},
+  {k:["analisis fundamental","empresa","valor"],r:"El análisis fundamental evalúa el valor real de una empresa analizando sus finanzas y modelo de negocio. Busca comprar acciones que estén subvaloradas respecto a su valor real."},
+  {k:["dividendo","dividendos"],r:"Los dividendos son pagos periódicos que algunas empresas hacen a sus accionistas con parte de sus ganancias. Son una forma de ingresos pasivos."},
+  {k:["volatilidad","volatil"],r:"La volatilidad mide cuánto varía el precio de un activo. Alta volatilidad = cambios bruscos (criptomonedas). Baja volatilidad = precios más estables. Mayor volatilidad implica mayor riesgo y mayor oportunidad."},
+  {k:["stop loss","stop-loss","limite de perdida"],r:"Un stop-loss es una orden que vende tu activo automáticamente cuando baja a cierto precio, limitando tus pérdidas. Ej: compras a $100 y pones stop-loss en $90."},
+  {k:["hola","buenos dias","buenas","hey","hi","saludos"],r:"¡Hola! 👋 Soy el asistente de Investa. Puedo explicarte conceptos de trading e inversiones. ¿Qué quieres aprender hoy?"},
+  {k:["gracias","muchas gracias","thank"],r:"¡De nada! 😊 Estoy aquí para ayudarte. Si tienes más preguntas, no dudes en preguntarme."},
+  {k:["premium","suscripcion","membresia"],r:"Investa Premium cuesta $99 MXN/mes o $999 MXN/año. Incluye: sin anuncios, cursos exclusivos, $25,000 de dinero virtual extra, 500 Investa Tokens y liga Premium. Disponible en la Tienda."},
+  {k:["xp","experiencia","nivel","subir nivel"],r:"El XP se gana completando cursos en la sección Aprende. Cada curso da entre 50 y 150 XP. Al llenar la barra subes de nivel."},
+  {k:["investa","app","como funciona"],r:"Investa es una app de trading simulado. Recibes $10,000 virtuales para invertir en acciones, criptomonedas y divisas. Los precios son reales pero el dinero es ficticio, así puedes aprender sin riesgo."}
+];
+
+function botReply(msg){
+  var q=msg.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  for(var i=0;i<KB.length;i++){
+    for(var j=0;j<KB[i].k.length;j++){
+      if(q.indexOf(KB[i].k[j])!==-1)return KB[i].r;
+    }
+  }
+  return "Buena pregunta. Puedo ayudarte con temas como: acciones, criptomonedas, forex, diversificación, análisis técnico, riesgo, dividendos y más. ¿Sobre qué quieres aprender?";
+}
+
+function addMsg(text,who){
+  var box=document.getElementById("chat-messages");
+  var div=document.createElement("div");
+  div.className="chat-msg "+who;
+  div.textContent=text;
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+}
+
+function sendChat(){
+  var inp=document.getElementById("chat-input");
+  var msg=inp.value.trim();
+  if(!msg)return;
+  addMsg(msg,"user");
+  inp.value="";
+  setTimeout(function(){addMsg(botReply(msg),"bot");},400);
+}
+
+function askChip(q){
+  document.getElementById("chat-input").value=q;
+  sendChat();
+}
+
+function switchLeagueTab(tab){
+  ["amigos","rangos","nacional"].forEach(function(t){
+    document.getElementById("ltab-"+t).style.display=t===tab?"block":"none";
+    document.querySelectorAll(".league-tab").forEach(function(b){b.classList.toggle("active",b.dataset.ltab===tab);});
+  });
+}
+var _leagueType="privada";
+function selectLeagueType(type){
+  _leagueType=type;
+  document.querySelectorAll(".league-type-btn").forEach(function(b){
+    var active=b.dataset.type===type;
+    b.style.borderColor=active?"var(--primary)":"var(--border)";
+    b.style.background=active?"rgba(107,70,193,0.08)":"var(--bg)";
+    b.style.color=active?"var(--primary)":"var(--muted)";
+  });
+}
+
+
+function selectPlan(p){
+  document.getElementById("plan-monthly").style.borderColor=p==="monthly"?"var(--primary)":"var(--border)";
+  document.getElementById("plan-annual").style.borderColor=p==="annual"?"var(--primary)":"var(--border)";
+  document.getElementById("subscribe-btn").textContent=p==="monthly"?"Suscribirme · $99 MXN/mes":"Suscribirme · $999 MXN/ano";
+}
+</script>
+<script>
+(function(){
+"use strict";
+var cBC=null,cSC=null,sAnim=null;
+var STATE={user:{name:"Usuario",email:"usuario@investa.com",avatar:"👤",level:1,xp:0,xpMax:100,tokens:100},balance:10000,portfolio:[],transactions:[],vidDone:{},certDone:{},challengeDone:{},league:{players:[{name:"Carlos M.",investments:12,gain:8.4},{name:"Ana L.",investments:15,gain:7.2},{name:"Luis F.",investments:9,gain:6.8},{name:"Tu",investments:0,gain:0,isUser:true},{name:"Maria G.",investments:8,gain:5.3},{name:"Pedro S.",investments:14,gain:4.7},{name:"Sofia R.",investments:10,gain:3.2},{name:"Jorge D.",investments:7,gain:-1.5}]},courses:[{id:1,title:"Introduccion al Trading",level:"BASICO",completed:false,xp:50},{id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:false,xp:100},{id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}],achievements:[{id:1,name:"Primera inversion",icon:"🎯",unlocked:false},{id:2,name:"Diversificado",icon:"📊",unlocked:false},{id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},{id:4,name:"Estudiante dedicado",icon:"📚",unlocked:false}],currentBuyAsset:null,currentSellAsset:null};
+// MP definido globalmente arriba
+var SCH=[{j:1,r:"Carlos M."},{j:2,r:"Ana L."},{j:3,r:"Luis F."},{j:4,r:"Maria G."},{j:5,r:"Pedro S."},{j:6,r:"Sofia R."},{j:7,r:"Jorge D."}];
+var CJ=1;
+var RP={"Carlos M.":[{s:"BTC",i:2500,p:8.4},{s:"AAPL",i:1800,p:3.2},{s:"ETH",i:900,p:-1.1}],"Ana L.":[{s:"TSLA",i:3000,p:7.2},{s:"SOL",i:1200,p:2.5}],"Luis F.":[{s:"AMZN",i:2000,p:6.8},{s:"USD/MXN",i:800,p:1.2}],"Maria G.":[{s:"ETH",i:1500,p:5.3},{s:"BTC",i:1000,p:4.1}],"Pedro S.":[{s:"AAPL",i:2200,p:4.7},{s:"AMZN",i:1600,p:3.0},{s:"SOL",i:600,p:-0.5}],"Sofia R.":[{s:"BTC",i:1800,p:3.2},{s:"USD/JPY",i:700,p:0.8}],"Jorge D.":[{s:"TSLA",i:900,p:-1.5},{s:"ETH",i:600,p:-2.0}]};
+function fp(v){return (v>=0?"+":"")+v.toFixed(2)+"%";}
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},3000);}
+function updBal(){document.querySelectorAll(".balance").forEach(function(e){e.textContent=fc(STATE.balance);});}
+function save(){
+  if(!_currentUID) return;
+  // Debounce: esperar 2s antes de guardar para no saturar la API
+  if(_saveTimeout) clearTimeout(_saveTimeout);
+  _saveTimeout = setTimeout(function(){
+    asPost({
+      action:"saveState",
+      uid: _currentUID,
+      state:{
+        name:STATE.user.name, email:STATE.user.email,
+        avatar:STATE.user.avatar, level:STATE.user.level,
+        xp:STATE.user.xp, xpMax:STATE.user.xpMax, tokens:STATE.user.tokens,
+        balance:STATE.balance, portfolio:STATE.portfolio,
+        transactions:STATE.transactions.slice(0,50),
+        vidDone:STATE.vidDone||{}, certDone:STATE.certDone||{},
+        challengeDone:STATE.challengeDone||{}, myLeagues:STATE.myLeagues||[],
+        achievements:STATE.achievements, courses:STATE.courses
+      }
+    }, function(r){
+      if(!r.ok) console.log("Save error:", r.error);
+    });
+  }, 2000);
+}
+function loadFromAS(uid, callback){
+  asPost({action:"loadState", uid:uid}, function(r){
+    if(r.ok && r.state){
+      var d=r.state;
+      if(d.name)    STATE.user.name=d.name;
+      if(d.email)   STATE.user.email=d.email;
+      if(d.avatar)  STATE.user.avatar=d.avatar;
+      if(d.level)   STATE.user.level=d.level;
+      if(d.xp!=null)STATE.user.xp=d.xp;
+      if(d.xpMax)   STATE.user.xpMax=d.xpMax;
+      STATE.user.tokens=d.tokens!=null?d.tokens:100;
+      STATE.balance=d.balance!=null?d.balance:10000;
+      STATE.portfolio=d.portfolio||[];
+      STATE.transactions=d.transactions||[];
+      STATE.vidDone=d.vidDone||{};
+      STATE.certDone=d.certDone||{};
+      STATE.challengeDone=d.challengeDone||{};
+      STATE.myLeagues=d.myLeagues||[];
+      if(d.achievements) STATE.achievements=d.achievements;
+      if(d.courses) STATE.courses=d.courses;
+    }
+    if(callback) callback();
+  });
+}
+function load(){ return false; }
+function showNav(){document.getElementById("tabs-bottom").style.display="flex";}
+function updShopTokens(){
+  var el=document.getElementById("shop-tokens-count");
+  if(el)el.textContent=STATE.user.tokens;
+}
+function showScreen(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});var t=document.querySelector('[data-screen="'+id+'"]');if(t){t.classList.add("active");var body=t.querySelector(".screen-body");if(body)body.scrollTop=0;var m={home:uHome,portfolio:uPort,markets:uMkts,league:uLeag,learn:uLearn,profile:uProf,matchup:uMatch,shop:function(){updBal();updShopTokens();},support:function(){updBal();},retos:uRetos};if(m[id])m[id]();}closeDrawer();}
+function nav(id){showScreen(id);document.querySelectorAll(".tab-item").forEach(function(t){t.classList.toggle("active",t.dataset.tab===id);});}
+function toggleDrawer(){document.getElementById("drawer").classList.toggle("open");document.getElementById("drawerOverlay").classList.toggle("open");}
+function closeDrawer(){document.getElementById("drawer").classList.remove("open");document.getElementById("drawerOverlay").classList.remove("open");}
+function initParts(){try{var sec=document.querySelector('[data-screen="splash"]');if(!sec)return;var c=document.createElement("canvas");c.style.cssText="position:absolute;top:0;left:0;pointer-events:none;z-index:0;";c.width=390;c.height=window.innerHeight;sec.insertBefore(c,sec.firstChild);var W=c.width,H=c.height,ctx=c.getContext("2d"),pts=[];for(var i=0;i<80;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+1,vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1.2,a:Math.random()*.5+.3});(function draw(){try{ctx.clearRect(0,0,W,H);for(var a=0;a<pts.length;a++)for(var b=a+1;b<pts.length;b++){var dx=pts[a].x-pts[b].x,dy=pts[a].y-pts[b].y,d=Math.sqrt(dx*dx+dy*dy);if(d<140){ctx.beginPath();ctx.strokeStyle="rgba(167,139,250,"+(0.3*(1-d/140))+")";ctx.lineWidth=.8;ctx.moveTo(pts[a].x,pts[a].y);ctx.lineTo(pts[b].x,pts[b].y);ctx.stroke();}}pts.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle="rgba(167,139,250,"+p.a+")";ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;});sAnim=requestAnimationFrame(draw);}catch(e){}})();}catch(e){}}
+function openBuy(sym){var a=MP[sym];if(!a)return;STATE.currentBuyAsset=sym;window._curBuySym=sym;document.getElementById("modal-asset-name").textContent=sym;document.getElementById("modal-asset-price").textContent=fc(a.price);document.getElementById("modal-asset-change").textContent=fp(a.change);document.getElementById("modal-asset-change").style.color=a.change>=0?"var(--success)":"var(--danger)";document.getElementById("modal-balance").textContent=fc(STATE.balance);document.getElementById("buy-amount").value="";document.getElementById("modal-total").textContent="$0.00";document.getElementById("buyModal").classList.add("open");document.querySelectorAll("#buyModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});setTimeout(function(){if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}gChartReal(sym,"price-chart","#2DD4BF","line");},50);}
+function closeBuy(){document.getElementById("buyModal").classList.remove("open");if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}STATE.currentBuyAsset=null;}
+function confirmBuy(){var amt=parseFloat(document.getElementById("buy-amount").value);if(!amt||amt<=0){toast("Ingresa una cantidad valida");return;}if(amt>STATE.balance){toast("Balance insuficiente");return;}var a=MP[STATE.currentBuyAsset],sym=STATE.currentBuyAsset,ex=STATE.portfolio.find(function(p){return p.symbol===sym;});if(ex){var tq=ex.quantity+amt/a.price;ex.invested+=amt;ex.quantity=tq;ex.buyPrice=ex.invested/tq;}else STATE.portfolio.push({symbol:sym,quantity:amt/a.price,buyPrice:a.price,invested:amt});STATE.balance-=amt;STATE.transactions.unshift({type:"buy",symbol:sym,amount:amt,price:a.price,date:new Date().toISOString()});chkAch();save();updBal();uLeagData();closeBuy();toast("Compraste "+sym+" por "+fc(amt));}
+function openSell(sym){var p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var cp=MP[sym].price,cv=p.quantity*cp,pf=cv-p.invested;STATE.currentSellAsset=sym;window._curSellSym=sym;document.getElementById("sell-modal-asset-name").textContent=sym;document.getElementById("sell-modal-current-price").textContent=fc(cp);document.getElementById("sell-modal-investment").textContent=fc(p.invested);document.getElementById("sell-modal-current-value").textContent=fc(cv);document.getElementById("sell-modal-profit").textContent=fc(pf);document.getElementById("sell-modal-profit").style.color=pf>=0?"var(--success)":"var(--danger)";document.getElementById("sell-amount").value="";document.getElementById("sell-receive").textContent="$0.00";document.getElementById("sell-gain-est").textContent="$0.00";document.getElementById("sellModal").classList.add("open");setTimeout(function(){if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}gChartReal(sym,"sell-price-chart","#EF4444","line");document.querySelectorAll("#sellModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});},50);}
+function closeSell(){document.getElementById("sellModal").classList.remove("open");if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}STATE.currentSellAsset=null;}
+function confirmSell(){var sym=STATE.currentSellAsset,p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var amt=parseFloat(document.getElementById("sell-amount").value),cv=p.quantity*MP[sym].price;if(!amt||amt<=0){toast("Ingresa cantidad valida");return;}if(amt>cv){toast("Maximo: "+fc(cv));return;}var ratio=amt/cv,iS=p.invested*ratio,gain=amt-iS;STATE.balance+=amt;STATE.transactions.unshift({type:"sell",symbol:sym,amount:amt,price:MP[sym].price,date:new Date().toISOString()});if(ratio>=0.9999)STATE.portfolio=STATE.portfolio.filter(function(x){return x.symbol!==sym;});else{p.quantity-=p.quantity*ratio;p.invested-=iS;}save();updBal();uLeagData();closeSell();toast("Vendiste "+fc(amt)+" de "+sym);uPort();}
+function uLeagData(){var inv=0,cur=0;STATE.portfolio.forEach(function(i){inv+=i.invested;cur+=i.quantity*MP[i.symbol].price;});var g=inv>0?((cur-inv)/inv)*100:0;var u=STATE.league.players.find(function(p){return p.isUser;});if(u){u.gain=g;u.investments=STATE.portfolio.length;}STATE.league.players.sort(function(a,b){return b.gain-a.gain;});save();}
+function myStats(){var inv=0,cur=0;STATE.portfolio.forEach(function(i){inv+=i.invested;cur+=i.quantity*MP[i.symbol].price;});var g=inv>0?((cur-inv)/inv)*100:0;return{name:STATE.user.name,balance:STATE.balance+cur,invested:inv,current:cur,gain:g,assets:STATE.portfolio.length,profit:cur-inv};}
+function rvStats(rn){var port=RP[rn]||[],inv=0,cur=0;port.forEach(function(i){inv+=i.i;cur+=i.i*(1+i.p/100);});var g=inv>0?((cur-inv)/inv)*100:0;return{name:rn,balance:10000+(cur-inv),invested:inv,current:cur,gain:g,assets:port.length,profit:cur-inv};}
+function uMatch(){updBal();var j=SCH[CJ-1],me=myStats(),rv=rvStats(j.r),win=me.gain>rv.gain,tie=me.gain.toFixed(2)===rv.gain.toFixed(2);document.getElementById("m-jornada").textContent="● Jornada "+CJ+" · En curso";document.getElementById("m-me-av").textContent=me.name.substring(0,2).toUpperCase();document.getElementById("m-rv-av").textContent=rv.name.substring(0,2).toUpperCase();document.getElementById("m-me-name").textContent=me.name;document.getElementById("m-rv-name").textContent=rv.name;var mP=document.getElementById("m-me-pct");mP.textContent=fp(me.gain);mP.className="fighter-pct "+(me.gain>0?"pos":me.gain<0?"neg":"zero");var rP=document.getElementById("m-rv-pct");rP.textContent=fp(rv.gain);rP.className="fighter-pct "+(rv.gain>0?"pos":rv.gain<0?"neg":"zero");var chip=document.getElementById("m-chip");if(tie){chip.textContent="EMPATE";chip.className="live-chip even";}else if(win){chip.textContent="GANANDO";chip.className="live-chip winning";}else{chip.textContent="PERDIENDO";chip.className="live-chip losing";}[1,2,3,4].forEach(function(n){document.getElementById("s-me"+n).textContent=me.name;document.getElementById("s-rv"+n).textContent=rv.name;});document.getElementById("s-me-bal").textContent=fc(me.balance);document.getElementById("s-rv-bal").textContent=fc(rv.balance);document.getElementById("s-me-inv").textContent=fc(me.invested);document.getElementById("s-rv-inv").textContent=fc(rv.invested);document.getElementById("s-me-ast").textContent=me.assets;document.getElementById("s-rv-ast").textContent=rv.assets;var mp2=document.getElementById("s-me-prf");mp2.textContent=fc(me.profit);mp2.style.color=me.profit>=0?"var(--success)":"var(--danger)";var rp2=document.getElementById("s-rv-prf");rp2.textContent=fc(rv.profit);rp2.style.color=rv.profit>=0?"var(--success)":"var(--danger)";var mets=[{lb:"Rendimiento semanal",mv:me.gain,rv:rv.gain,f:fp},{lb:"Total invertido",mv:me.invested,rv:rv.invested,f:fc},{lb:"Valor de cartera",mv:me.current,rv:rv.current,f:fc}];var bH="";mets.forEach(function(m){var tot=Math.abs(m.mv)+Math.abs(m.rv)||1;var mp=(Math.abs(m.mv)/tot*100).toFixed(1),rp=(100-parseFloat(mp)).toFixed(1);bH+='<div class="bar-row"><div class="bar-top"><span class="bar-top-me">'+me.name+" · "+m.f(m.mv)+'</span><span class="bar-top-rival">'+rv.name+" · "+m.f(m.rv)+'</span></div><div class="bar-track"><div class="bar-fill-me" style="width:'+mp+'%"></div><div class="bar-fill-rival" style="width:'+rp+'%"></div></div><div class="bar-sub">'+m.lb+"</div></div>";});document.getElementById("bars-list").innerHTML=bH;document.getElementById("ac-me-head").textContent=me.name;document.getElementById("ac-rv-head").textContent=rv.name;var maH="";if(STATE.portfolio.length===0)maH='<div class="no-assets">Sin activos</div>';else STATE.portfolio.forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pp=((cv-it.invested)/it.invested)*100;maH+='<div class="achip"><div class="achip-ico" style="background:'+a.color+';">'+a.icon+'</div><div><div class="achip-sym">'+it.symbol+'</div><div class="achip-pct '+(pp>=0?"p":"n")+'">'+fp(pp)+"</div></div></div>";});document.getElementById("ac-me-list").innerHTML=maH;var rPort=RP[j.r]||[],raH="";if(rPort.length===0)raH='<div class="no-assets">Sin activos</div>';else rPort.forEach(function(it){var a=MP[it.s]||{icon:"?",color:"var(--muted)"};raH+='<div class="achip"><div class="achip-ico" style="background:'+a.color+';">'+a.icon+'</div><div><div class="achip-sym">'+it.s+'</div><div class="achip-pct '+(it.p>=0?"p":"n")+'">'+fp(it.p)+"</div></div></div>";});document.getElementById("ac-rv-list").innerHTML=raH;var cH="";SCH.forEach(function(m){var iC=m.j===CJ,isP=m.j<CJ,cls,txt;if(iC){cls="now";txt="En curso";}else if(isP){var w=Math.random()>.4;cls=w?"win":"loss";txt=w?"Victoria":"Derrota";}else{cls="pending";txt="Pendiente";}cH+='<div class="cal-row"><div class="cal-num">J'+m.j+'</div><div class="cal-name">'+m.r+'</div><div class="cal-badge '+cls+'">'+txt+"</div></div>";});document.getElementById("cal-list").innerHTML=cH;}
+var RANGOS=[
+  {nombre:"Bronce I",   icon:"🥉",xpMin:0,    xpMax:200,  color:"#cd7f32",cursos:"Introduccion al Trading"},
+  {nombre:"Bronce II",  icon:"🥉",xpMin:200,  xpMax:400,  color:"#cd7f32",cursos:"Analisis Tecnico Basico"},
+  {nombre:"Plata I",    icon:"🥈",xpMin:400,  xpMax:700,  color:"#a0a0a0",cursos:"Gestion de Riesgo"},
+  {nombre:"Plata II",   icon:"🥈",xpMin:700,  xpMax:1100, color:"#a0a0a0",cursos:"Forex Avanzado"},
+  {nombre:"Oro I",      icon:"🥇",xpMin:1100, xpMax:1600, color:"#FFD700",cursos:"Criptomonedas Pro"},
+  {nombre:"Oro II",     icon:"🥇",xpMin:1600, xpMax:2200, color:"#FFD700",cursos:"Trading Algoritmico"},
+  {nombre:"Platino",    icon:"💎",xpMin:2200, xpMax:3000, color:"#4FC3F7",cursos:"Estrategias Institucionales"},
+  {nombre:"Diamante",   icon:"🔷",xpMin:3000, xpMax:4200, color:"#00BCD4",cursos:"Analisis Cuantitativo"},
+  {nombre:"Maestro",    icon:"👑",xpMin:4200, xpMax:6000, color:"#9C27B0",cursos:"Masterclass Investa"},
+  {nombre:"Gran Maestro",icon:"🌟",xpMin:6000,xpMax:99999,color:"#FF6F00",cursos:"Acceso Total Premium"}
+];
+function getTotalXP(){var total=STATE.user.xp;var xpMax=100;for(var i=1;i<STATE.user.level;i++){total+=xpMax;xpMax=Math.floor(xpMax*1.5);}return total;}
+function getRangoActual(){var total=getTotalXP();for(var i=RANGOS.length-1;i>=0;i--){if(total>=RANGOS[i].xpMin)return i;}return 0;}
+function uLeag(){
+  updBal();
+  var tb=document.getElementById("league-tbody");
+  if(tb){tb.innerHTML="";var uP=0;STATE.league.players.forEach(function(p,i){var row=document.createElement("tr");if(p.isUser){row.classList.add("highlight");uP=i+1;}var bc=i===0?"var(--primary)":(i<=2?"#cd7f32":(p.isUser?"var(--accent)":"var(--muted)"));row.innerHTML='<td><span class="rank-badge" style="background:'+bc+';">'+(i+1)+'</span></td><td style="font-weight:'+(p.isUser?'700':'600')+';">'+p.name+'</td><td>'+p.investments+'</td><td style="color:'+(p.gain>=0?'var(--success)':'var(--danger)')+';font-weight:600;">'+fp(p.gain)+'</td>';tb.appendChild(row);});var u=STATE.league.players.find(function(p){return p.isUser;});document.getElementById("user-rank").textContent="#"+uP;document.getElementById("user-weekly-gain").textContent=fp(u.gain);document.getElementById("user-weekly-gain").style.color=u.gain>=0?"var(--success)":"var(--danger)";}
+  var mll=document.getElementById("my-leagues-list");
+  if(mll){if(!STATE.myLeagues||STATE.myLeagues.length===0){mll.innerHTML="";}else{var lh='<div class="card-title" style="margin-top:4px;">Mis ligas creadas</div>';STATE.myLeagues.forEach(function(l){lh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:10px;margin-bottom:6px;"><div><div style="font-size:14px;font-weight:600;">'+l.name+'</div><div style="font-size:11px;color:var(--muted);">'+(l.type==="privada"?"🔒 Privada":"🌐 Publica")+'</div></div><span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);">Activa</span></div>';});mll.innerHTML=lh;}}
+  var totalXP=getTotalXP();var ri=getRangoActual();var rango=RANGOS[ri];var xpEnRango=totalXP-rango.xpMin;var xpNecesario=rango.xpMax-rango.xpMin;var pct=Math.min(100,(xpEnRango/xpNecesario*100)).toFixed(0);
+  var rb=document.getElementById("rango-actual-badge");if(rb){rb.textContent=rango.icon;document.getElementById("rango-actual-nombre").textContent=rango.nombre;document.getElementById("rango-actual-nombre").style.color=rango.color;document.getElementById("rango-xp-info").textContent=xpEnRango+" / "+xpNecesario+" XP para avanzar";document.getElementById("rango-progress").style.width=pct+"%";}
+  var rlist=document.getElementById("rangos-list");if(rlist){var rh="";RANGOS.forEach(function(r,idx){var unlocked=totalXP>=r.xpMin;var current=idx===ri;rh+='<div class="rango-item'+(current?" current":"")+(unlocked?"":" locked")+'"><div style="font-size:28px;">'+r.icon+'</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;color:'+(unlocked?r.color:"var(--muted)")+';">'+r.nombre+'</div><div style="font-size:11px;color:var(--muted);">'+r.xpMin+' XP · '+r.cursos+'</div>'+(current?'<div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:2px;">Rango actual</div>':"")+'</div>'+(unlocked&&!current?'<span class="badge success" style="font-size:11px;">✓</span>':"")+(current?'<span class="badge" style="background:rgba(107,70,193,0.15);color:var(--primary);font-size:11px;">Activo</span>':"")+((!unlocked)?'<span style="font-size:18px;">🔒</span>':"")+'</div>';});rlist.innerHTML=rh;}
+  var ntb=document.getElementById("nacional-tbody");if(ntb){var nacional=[{name:"ProTrader_MX",rango:"👑",gain:24.3},{name:"CriptoKing99",rango:"💎",gain:19.7},{name:"InvestaMaster",rango:"🥇",gain:17.2},{name:"TradingGuru",rango:"🥇",gain:15.8},{name:"MarketHawk",rango:"🥈",gain:14.1},{name:"AlgoTrader",rango:"🥈",gain:12.5},{name:"BullRunner",rango:"🥉",gain:11.3},{name:STATE.user.name,rango:RANGOS[getRangoActual()].icon,gain:STATE.league.players.find(function(p){return p.isUser;}).gain,isUser:true},{name:"ForexFan",rango:"🥉",gain:9.4},{name:"StockPicker",rango:"🥉",gain:8.1}];nacional.sort(function(a,b){return b.gain-a.gain;});var nh="";nacional.forEach(function(p,i){nh+='<tr'+(p.isUser?' class="highlight"':'')+"><td><span class='rank-badge' style='background:"+(i===0?"var(--primary)":i<=2?"#cd7f32":"var(--muted)")+"'>"+(i+1)+"</span></td><td style='font-weight:"+(p.isUser?"700":"500")+"'>"+p.name+"</td><td style='font-size:16px;'>"+p.rango+"</td><td style='color:"+(p.gain>=0?"var(--success)":"var(--danger)")+";font-weight:600;'>"+fp(p.gain)+"</td></tr>";});ntb.innerHTML=nh;var myPos=nacional.findIndex(function(p){return p.isUser;});document.getElementById("nacional-rank").textContent="#"+(myPos+1);}
+}
+function uHome(){updBal();var inv=0,cur=0;STATE.portfolio.forEach(function(it){inv+=it.invested;cur+=it.quantity*MP[it.symbol].price;});var pf=cur-inv;document.getElementById("home-total-balance").textContent=fc(STATE.balance+cur);document.getElementById("home-invested").textContent=fc(inv);document.getElementById("home-profit").textContent=fc(pf);document.getElementById("home-profit").style.color=pf>=0?"var(--success)":"var(--danger)";var prev=document.getElementById("home-portfolio-preview");if(STATE.portfolio.length>0){var h='<div class="card"><div class="card-title">Tus inversiones activas ('+STATE.portfolio.length+')</div>';STATE.portfolio.slice(0,3).forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pp=((cv-it.invested)/it.invested)*100;h+='<div class="asset-item" data-nav="portfolio"><div class="asset-info"><div class="asset-icon" style="background:'+a.color+';">'+a.icon+'</div><div class="asset-details"><h4>'+it.symbol+'</h4><p>Invertido: '+fc(it.invested)+'</p></div></div><div class="asset-value"><div class="asset-price">'+fc(cv)+'</div><div class="asset-change '+(pp>=0?'positive':'negative')+'">'+fp(pp)+"</div></div></div>";});if(STATE.portfolio.length>3)h+='<p style="text-align:center;margin-top:12px;color:var(--muted);font-size:14px;">+'+(STATE.portfolio.length-3)+' mas</p>';h+='</div>';prev.innerHTML=h;}else prev.innerHTML="";}
+function uPort(){updBal();var list=document.getElementById("portfolio-list");if(STATE.portfolio.length===0){list.innerHTML='<div class="empty-state"><div class="empty-state-icon">📊</div><h3>Sin inversiones</h3><p>Comienza a invertir</p><button class="btn btn-primary" data-nav="markets">Explorar mercados</button></div>';}else{var h="";STATE.portfolio.forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pf=cv-it.invested,pp=(pf/it.invested)*100;h+='<div class="asset-item" data-sell="'+it.symbol+'"><div class="asset-info"><div class="asset-icon" style="background:'+a.color+';">'+a.icon+'</div><div class="asset-details"><h4>'+it.symbol+'</h4><p>Invertido: '+fc(it.invested)+'</p></div></div><div class="asset-value"><div class="asset-price">'+fc(cv)+'</div><div class="asset-change '+(pp>=0?'positive':'negative')+'">'+fp(pp)+"</div></div></div>";});list.innerHTML=h;}var inv=0,cur=0;STATE.portfolio.forEach(function(it){inv+=it.invested;cur+=it.quantity*MP[it.symbol].price;});var pf=cur-inv,pp=inv>0?(pf/inv)*100:0;document.getElementById("portfolio-invested").textContent=fc(inv);document.getElementById("portfolio-current").textContent=fc(cur);document.getElementById("portfolio-profit").textContent=fc(pf)+" ("+fp(pp)+")";document.getElementById("portfolio-profit").style.color=pf>=0?"var(--success)":"var(--danger)";var hist=document.getElementById("transaction-history");if(STATE.transactions.length===0){hist.innerHTML='<div class="empty-state"><div class="empty-state-icon">📝</div><h3>Sin transacciones</h3></div>';}else{var tH="";STATE.transactions.slice(0,10).forEach(function(tx){var d=new Date(tx.date);tH+='<div class="transaction-item"><div class="transaction-info"><div class="transaction-icon '+tx.type+'">'+(tx.type==="buy"?"↓":"↑")+'</div><div class="transaction-details"><h4>'+(tx.type==="buy"?"Compra":"Venta")+" - "+tx.symbol+'</h4><p>'+d.toLocaleDateString("es-MX",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})+'</p></div></div><div class="transaction-amount"><div class="price" style="color:'+(tx.type==="buy"?"var(--danger)":"var(--success)")+';">'+(tx.type==="buy"?"-":"+")+fc(tx.amount)+'</div><div class="date">'+fc(tx.price)+"/u</div></div></div>";});hist.innerHTML=tH;}}
+function uMkts(){
+  updBal();
+  var groups=[
+    ["USD/MXN","USD/JPY","EUR/USD","GBP/USD","USD/CAD","USD/CHF","AUD/USD","USD/BRL"],
+    ["BTC","ETH","SOL","BNB","XRP","ADA","DOGE","AVAX","LINK","DOT","LTC"],
+    ["AAPL","AMZN","TSLA","GOOGL","MSFT","NVDA","META","NFLX","UBER","AMD","COIN"]
+  ];
+  var liveTag=window._wsConnected?'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--success);font-weight:600;"><span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block;"></span>LIVE</span>':"";
+  ["forex-list","crypto-list","stocks-list"].forEach(function(id,idx){
+    var html=groups[idx].map(function(sym){
+      var a=MP[sym];if(!a)return"";
+      var inP=STATE.portfolio.find(function(p){return p.symbol===sym;});
+      return '<div class="asset-item" data-buy="'+sym+'"><div class="asset-info"><div class="asset-icon" style="background:'+a.color+';">'+a.icon+'</div><div class="asset-details"><h4>'+sym+(inP?" ✓":"")+'</h4><p>'+fc(a.price)+" "+liveTag+'</p></div></div><div class="asset-value"><div class="asset-change '+(a.change>=0?'positive':'negative')+'">'+fp(a.change)+'</div></div></div>';
+    }).join("");
+    document.getElementById(id).innerHTML=html;
+  });
+}
+
+function uLearn(){
+  updBal();
+  document.getElementById("user-level").textContent=STATE.user.level;
+  document.getElementById("user-xp").textContent=STATE.user.xp;
+  document.getElementById("user-xp-max").textContent=STATE.user.xpMax;
+  document.getElementById("xp-progress").style.width=((STATE.user.xp/STATE.user.xpMax)*100)+"%";
+
+  // Cursos de texto
+  var h="";
+  STATE.courses.forEach(function(c){
+    var bg=c.level==="BASICO"?"var(--accent)":c.level==="INTERMEDIO"?"var(--primary)":"#F59E0B";
+    h+='<div class="asset-item" style="cursor:default;"><div class="asset-info"><div class="asset-icon" style="background:'+bg+';">📚</div><div class="asset-details"><h4>'+c.title+'</h4><p>'+c.level+' · +'+c.xp+' XP</p></div></div>'+(c.completed?'<span class="badge success">✓ Completado</span>':'<span class="badge">Disponible</span>')+'</div><button class="btn btn-small '+(c.completed?'btn-secondary':'btn-primary')+'" data-course="'+c.id+'" '+(c.completed?"disabled":"")+' style="margin-bottom:12px;">'+(c.completed?"Completado":"Comenzar")+'</button>';
+  });
+  document.getElementById("courses-list").innerHTML=h;
+
+  // Cursos en video
+  var videos=[
+    {id:"v1",title:"Trading en vivo: Forex para principiantes",level:"BASICO",duration:"1h 20min",xp:80,color:"#EF4444",done:STATE.vidDone&&STATE.vidDone["v1"]},
+    {id:"v2",title:"Criptomonedas: Análisis técnico avanzado",level:"INTERMEDIO",duration:"2h 15min",xp:120,color:"var(--primary)",done:STATE.vidDone&&STATE.vidDone["v2"]},
+    {id:"v3",title:"Estrategias profesionales de inversión",level:"AVANZADO",duration:"3h 00min",xp:200,color:"#F59E0B",done:STATE.vidDone&&STATE.vidDone["v3"]}
+  ];
+  var vh="";
+  videos.forEach(function(v){
+    vh+='<div class="asset-item" style="cursor:default;"><div class="asset-info"><div class="asset-icon" style="background:'+v.color+';">▶</div><div class="asset-details"><h4>'+v.title+'</h4><p>'+v.level+' · '+v.duration+' · +'+v.xp+' XP</p></div></div>'+(v.done?'<span class="badge success">✓</span>':'<span class="badge" style="background:rgba(239,68,68,0.12);color:#EF4444;">Video</span>')+'</div><button class="btn btn-small '+(v.done?'btn-secondary':'btn-primary')+'" data-vid="'+v.id+'" '+(v.done?"disabled":"")+' style="margin-bottom:12px;">'+(v.done?"Completado":"Ver curso")+'</button>';
+  });
+  document.getElementById("video-courses-list").innerHTML=vh;
+
+  // Certificaciones
+  var certs=[
+    {id:"c1",title:"Certificación en Análisis de Mercados",type:"Certificación",hours:"40h",xp:500,color:"#6B46C1",badge:"🏅",done:STATE.certDone&&STATE.certDone["c1"]},
+    {id:"c2",title:"Diplomado en Trading Algorítmico",type:"Diplomado",hours:"80h",xp:1000,color:"#0b2d5e",badge:"🎓",done:STATE.certDone&&STATE.certDone["c2"]},
+    {id:"c3",title:"Certificación Profesional Investa",type:"Certificación",hours:"60h",xp:750,color:"#2DD4BF",badge:"⭐",done:STATE.certDone&&STATE.certDone["c3"]}
+  ];
+  var ch="";
+  certs.forEach(function(c){
+    ch+='<div class="asset-item" style="cursor:default;"><div class="asset-info"><div class="asset-icon" style="background:'+c.color+';font-size:20px;">'+c.badge+'</div><div class="asset-details"><h4>'+c.title+'</h4><p>'+c.type+' · '+c.hours+' · +'+c.xp+' XP</p></div></div>'+(c.done?'<span class="badge success">✓</span>':'<span class="badge" style="background:rgba(107,70,193,0.12);color:var(--primary);">Premium</span>')+'</div><button class="btn btn-small '+(c.done?'btn-secondary':'btn-primary')+'" data-cert="'+c.id+'" '+(c.done?"disabled":"")+' style="margin-bottom:12px;">'+(c.done?"Obtenido":"Inscribirme")+'</button>';
+  });
+  document.getElementById("certs-list").innerHTML=ch;
+}
+function uProf(){document.getElementById("profile-name").textContent=STATE.user.name;document.getElementById("profile-email").textContent=STATE.user.email;document.getElementById("profile-avatar").textContent=STATE.user.avatar;document.getElementById("profile-level").textContent=STATE.user.level;var inv=0,cur=0;STATE.portfolio.forEach(function(it){inv+=it.invested;cur+=it.quantity*MP[it.symbol].price;});var pf=cur-inv;document.getElementById("profile-balance").textContent=fc(STATE.balance+cur);document.getElementById("profile-invested").textContent=fc(inv);document.getElementById("profile-profit").textContent=fc(pf);document.getElementById("profile-profit").style.color=pf>=0?"var(--success)":"var(--danger)";document.getElementById("profile-transactions").textContent=STATE.transactions.length;document.getElementById("profile-courses").textContent=STATE.courses.filter(function(c){return c.completed;}).length;document.getElementById("profile-tokens").textContent=STATE.user.tokens;var h="";STATE.achievements.forEach(function(a){h+='<div class="asset-item" style="opacity:'+(a.unlocked?'1':'0.5')+'"><div class="asset-info"><div style="font-size:28px;">'+a.icon+'</div><div class="asset-details"><h4>'+a.name+'</h4><p>'+(a.unlocked?'Desbloqueado':'Bloqueado')+'</p></div></div>'+(a.unlocked?'<span class="badge success">✓</span>':"")+"</div>";});document.getElementById("achievements-list").innerHTML=h;}
+function uRetos(){
+  // Desafíos diarios
+  var desafios=[
+    {id:"d1",icon:"📈",title:"Haz tu primera inversión hoy",desc:"Invierte cualquier cantidad en un activo",xp:50,label:"Primera inversión del día"},
+    {id:"d2",icon:"🔍",title:"Explora 3 mercados distintos",desc:"Visita Forex, Cripto y Acciones",xp:30,label:"Explorador de mercados"},
+    {id:"d3",icon:"📚",title:"Completa un curso de texto",desc:"Termina cualquier curso disponible",xp:40,label:"Estudiante del día"}
+  ];
+  var dh="";
+  desafios.forEach(function(d){
+    var done=STATE.challengeDone[d.id];
+    dh+='<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px;">'
+      +'<div style="font-size:28px;flex-shrink:0;">'+d.icon+'</div>'
+      +'<div style="flex:1;"><div style="font-size:14px;font-weight:600;margin-bottom:2px;">'+d.title+'</div>'
+      +'<div style="font-size:12px;color:var(--muted);">'+d.desc+' · +'+d.xp+' XP</div></div>'
+      +'<button class="btn btn-small '+(done?'btn-secondary':'btn-primary')+'" data-challenge="'+d.id+'" data-xp="'+d.xp+'" data-label="'+d.label+'" '+(done?"disabled":"")+' style="flex-shrink:0;">'+(done?"✓ Hecho":"Iniciar")+'</button>'
+      +'</div>';
+  });
+  document.getElementById("retos-desafios").innerHTML=dh;
+
+  // Torneos rápidos
+  var torneos=[
+    {id:"t1",icon:"⚡",title:"Torneo Relámpago 1h",desc:"El mayor % de ganancia en 1 hora gana",xp:150,premio:"500 Tokens",label:"Torneo Relámpago"},
+    {id:"t2",icon:"🎯",title:"Torneo de Precisión",desc:"Predice el movimiento de 5 activos",xp:120,premio:"300 Tokens",label:"Torneo Precisión"},
+    {id:"t3",icon:"🚀",title:"Torneo Cripto Sprint",desc:"Solo criptomonedas, 30 minutos",xp:100,premio:"200 Tokens",label:"Cripto Sprint"}
+  ];
+  var th="";
+  torneos.forEach(function(t){
+    var done=STATE.challengeDone[t.id];
+    th+='<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+      +'<span style="font-size:24px;">'+t.icon+'</span>'
+      +'<div><div style="font-size:14px;font-weight:700;">'+t.title+'</div>'
+      +'<div style="font-size:12px;color:var(--muted);">'+t.desc+'</div></div></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+      +'<div style="font-size:12px;"><span style="color:var(--primary);font-weight:600;">+'+t.xp+' XP</span> · <span style="color:#F59E0B;font-weight:600;">🪙 '+t.premio+'</span></div>'
+      +'<button class="btn btn-small '+(done?'btn-secondary':'btn-primary')+'" data-challenge="'+t.id+'" data-xp="'+t.xp+'" data-label="'+t.label+'" '+(done?"disabled":"")+' style="flex-shrink:0;">'+(done?"Inscrito ✓":"Inscribirme")+'</button>'
+      +'</div></div>';
+  });
+  document.getElementById("retos-torneos").innerHTML=th;
+
+  // Liga de retos
+  var ligas=[
+    {id:"l1",icon:"🥉",title:"Liga Bronce — Semana actual",desc:"Top 3 ganan bonus de XP x2",xp:200,label:"Liga Bronce"},
+    {id:"l2",icon:"🥈",title:"Liga Plata — Acceso Premium",desc:"Compite contra los mejores",xp:400,label:"Liga Plata"},
+    {id:"l3",icon:"🥇",title:"Liga Oro — Solo invitados",desc:"Los 10 mejores traders de Investa",xp:800,label:"Liga Oro"}
+  ];
+  var lh="";
+  ligas.forEach(function(l){
+    var done=STATE.challengeDone[l.id];
+    lh+='<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px;">'
+      +'<div style="font-size:28px;flex-shrink:0;">'+l.icon+'</div>'
+      +'<div style="flex:1;"><div style="font-size:14px;font-weight:600;margin-bottom:2px;">'+l.title+'</div>'
+      +'<div style="font-size:12px;color:var(--muted);">'+l.desc+' · +'+l.xp+' XP</div></div>'
+      +'<button class="btn btn-small '+(done?'btn-secondary':'btn-primary')+'" data-challenge="'+l.id+'" data-xp="'+l.xp+'" data-label="'+l.label+'" '+(done?"disabled":"")+' style="flex-shrink:0;">'+(done?"Unido ✓":"Unirme")+'</button>'
+      +'</div>';
+  });
+  document.getElementById("retos-liga").innerHTML=lh;
+
+  // Eventos por temporada
+  var eventos=[
+    {id:"e1",icon:"🌸",title:"Temporada Primavera 2025",desc:"Invierte en acciones verdes y sostenibles",xp:300,dates:"Abr 1 — Jun 30",label:"Evento Primavera"},
+    {id:"e2",icon:"🏖️",title:"Verano Cripto",desc:"Acumula ganancias en crypto durante el verano",xp:500,dates:"Jul 1 — Ago 31",label:"Verano Cripto"},
+    {id:"e3",icon:"🎃",title:"Halloween Trading",desc:"Opera activos de alto riesgo en octubre",xp:350,dates:"Oct 1 — Oct 31",label:"Halloween Trading"}
+  ];
+  var eh="";
+  eventos.forEach(function(e){
+    var done=STATE.challengeDone[e.id];
+    eh+='<div style="background:white;border-radius:12px;padding:14px;margin-bottom:8px;border:1px solid var(--border);">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+      +'<span style="font-size:28px;">'+e.icon+'</span>'
+      +'<div><div style="font-size:14px;font-weight:700;">'+e.title+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);">📅 '+e.dates+'</div></div></div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">'+e.desc+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+      +'<span style="color:var(--primary);font-weight:600;font-size:13px;">+'+e.xp+' XP al completar</span>'
+      +'<button class="btn btn-small '+(done?'btn-secondary':'btn-primary')+'" data-challenge="'+e.id+'" data-xp="'+e.xp+'" data-label="'+e.label+'" '+(done?"disabled":"")+' style="flex-shrink:0;">'+(done?"Inscrito ✓":"Participar")+'</button>'
+      +'</div></div>';
+  });
+  document.getElementById("retos-eventos").innerHTML=eh;
+}
+function gainXP(amount,label){
+  STATE.user.xp+=amount;
+  var leveled=false;
+  while(STATE.user.xp>=STATE.user.xpMax){
+    STATE.user.xp-=STATE.user.xpMax;
+    STATE.user.level++;
+    STATE.user.xpMax=Math.floor(STATE.user.xpMax*1.5);
+    leveled=true;
+    setTimeout(function(){toast("🎉 Subiste al nivel "+STATE.user.level+"!");},500);
+  }
+  if(!leveled)toast("+"+ amount +" XP — "+label+"!");
+  save();
+}
+function startVideo(id){
+  var videos={v1:{title:"Forex para principiantes",xp:80},v2:{title:"Análisis técnico cripto",xp:120},v3:{title:"Estrategias profesionales",xp:200}};
+  var v=videos[id];if(!v||STATE.vidDone[id])return;
+  STATE.vidDone[id]=true;
+  gainXP(v.xp,v.title);
+  uLearn();
+}
+function startCert(id){
+  var certs={c1:{title:"Certificación Análisis de Mercados",xp:500},c2:{title:"Diplomado Trading Algorítmico",xp:1000},c3:{title:"Certificación Profesional Investa",xp:750}};
+  var c=certs[id];if(!c||STATE.certDone[id])return;
+  STATE.certDone[id]=true;
+  gainXP(c.xp,c.title);
+  uLearn();
+}
+function joinChallenge(id,xp,label){
+  if(STATE.challengeDone[id])return;
+  STATE.challengeDone[id]=true;
+  gainXP(xp,label);
+  uRetos();
+}
+function startCourse(id){var c=STATE.courses.find(function(x){return x.id===id;});if(!c||c.completed)return;c.completed=true;STATE.user.xp+=c.xp;while(STATE.user.xp>=STATE.user.xpMax){STATE.user.xp-=STATE.user.xpMax;STATE.user.level++;STATE.user.xpMax=Math.floor(STATE.user.xpMax*1.5);toast("Subiste al nivel "+STATE.user.level+"!");}if(STATE.courses.filter(function(x){return x.completed;}).length===3)unlockAch(4);save();uLearn();toast("Curso completado! +"+c.xp+" XP");}
+function chkAch(){if(STATE.portfolio.length>=1)unlockAch(1);if(STATE.portfolio.length>=3)unlockAch(2);var pos=STATE.league.players.findIndex(function(p){return p.isUser;});if(pos===0)unlockAch(3);}
+function unlockAch(id){var a=STATE.achievements.find(function(x){return x.id===id;});if(!a||a.unlocked)return;a.unlocked=true;save();toast("Logro: "+a.name);}
+function doLogin(em, pw, btn, btnText){
+  asPost({action:"login", email:em, password:pw}, function(r){
+    if(r.ok){
+      _currentUID = r.uid;
+      STATE.user.name  = r.name;
+      STATE.user.email = r.email;
+      if(r.avatar) STATE.user.avatar = r.avatar;
+      loadFromAS(r.uid, function(){
+        localStorage.setItem("inv_session", JSON.stringify({
+          uid:r.uid, name:r.name, email:r.email, avatar:r.avatar||"👤"
+        }));
+        document.getElementById("drawer-user-name").textContent=STATE.user.name;
+        if(btn){btn.textContent=btnText||"Iniciar sesion"; btn.disabled=false;}
+        showNav(); nav("home");
+        toast("Bienvenido, "+STATE.user.name+"!");
+      });
+    } else {
+      if(btn){btn.textContent=btnText||"Iniciar sesion"; btn.disabled=false;}
+      toast(r.error||"Usuario o contrasena incorrectos");
+    }
+  });
+}
+function handleLogin(){
+  var em=document.getElementById("email").value.trim();
+  var pw=document.getElementById("password").value;
+  if(!em.includes("@")){toast("Correo invalido");return;}
+  if(pw.length<6){toast("Contrasena muy corta");return;}
+  var btn=document.getElementById("login-btn");
+  btn.textContent="Iniciando..."; btn.disabled=true;
+  doLogin(em, pw, btn, "Iniciar sesion");
+}
+var selPlan="annual";
+document.addEventListener("DOMContentLoaded",function(){
+  // Limpiar cache viejo si la versión cambió
+  // Verificar sesion guardada en localStorage
+  var savedSession = null;
+  try { savedSession = JSON.parse(localStorage.getItem("inv_session")); } catch(e){}
+
+  if(savedSession && savedSession.uid && savedSession.email){
+    _currentUID = savedSession.uid;
+    STATE.user.name  = savedSession.name;
+    STATE.user.email = savedSession.email;
+    if(savedSession.avatar) STATE.user.avatar = savedSession.avatar;
+    loadFromAS(savedSession.uid, function(){
+      document.getElementById("drawer-user-name").textContent = STATE.user.name;
+      if(splashAnimId){ cancelAnimationFrame(splashAnimId); splashAnimId=null; }
+      showNav();
+      nav("home");
+    });
+  }
+
+  var hd = false;
+  initParts();
+  document.getElementById("drawer-user-name").textContent=STATE.user.name;
+  document.getElementById("splash-start-btn").addEventListener("click",function(){
+    try{if(sAnim){cancelAnimationFrame(sAnim);sAnim=null;}}catch(e){}
+    showScreen("login");
+  });
+  document.getElementById("login-btn").addEventListener("click",handleLogin);
+
+  // Pantalla de registro
+  document.getElementById("register-btn").addEventListener("click",function(){
+    var name=document.getElementById("reg-name").value.trim();
+    var em=document.getElementById("reg-email").value.trim();
+    var pw=document.getElementById("reg-password").value;
+    var pw2=document.getElementById("reg-password2").value;
+    if(!name){toast("Escribe tu nombre de usuario");return;}
+    if(name.length<3){toast("El nombre debe tener al menos 3 caracteres");return;}
+    if(!em.includes("@")){toast("Correo invalido");return;}
+    if(pw.length<6){toast("La contrasena debe tener al menos 6 caracteres");return;}
+    if(pw!==pw2){toast("Las contrasenas no coinciden");return;}
+    var btn=document.getElementById("register-btn");
+    btn.textContent="Creando cuenta..."; btn.disabled=true;
+    asPost({action:"register", email:em, password:pw, name:name}, function(r){
+      if(r.ok){
+        _currentUID=r.uid;
+        STATE.user.name=r.name; STATE.user.email=r.email;
+        localStorage.setItem("inv_session",JSON.stringify({uid:r.uid,name:r.name,email:r.email,avatar:"👤"}));
+        document.getElementById("drawer-user-name").textContent=r.name;
+        btn.textContent="Crear cuenta"; btn.disabled=false;
+        showNav(); nav("home");
+        toast("Bienvenido a Investa, "+r.name+"!");
+      } else {
+        btn.textContent="Crear cuenta"; btn.disabled=false;
+        toast(r.error||"Error al crear cuenta");
+      }
+    });
+  });
+
+  document.getElementById("back-login-link").addEventListener("click",function(e){
+    e.preventDefault();
+    showScreen("login");
+  });
+  document.getElementById("google-login-btn").addEventListener("click",function(){
+    toast("Login con Google: usa tu correo de Google y una contrasena para registrarte");
+  });
+  document.getElementById("apple-login-btn").addEventListener("click",function(){
+    toast("Login con Apple proximamente disponible");
+  });
+  document.getElementById("register-link").addEventListener("click",function(e){
+    e.preventDefault();
+    showScreen("register");
+  });
+  document.querySelectorAll(".tab-item").forEach(function(t){t.addEventListener("click",function(){nav(t.dataset.tab);});});
+  document.querySelectorAll(".js-menu-btn").forEach(function(b){b.addEventListener("click",toggleDrawer);});
+  document.getElementById("drawerOverlay").addEventListener("click",closeDrawer);
+  document.querySelectorAll(".drawer-item").forEach(function(i){i.addEventListener("click",function(){nav(i.dataset.nav);});});
+  document.getElementById("close-buy-modal").addEventListener("click",closeBuy);
+  document.getElementById("cancel-buy-btn").addEventListener("click",closeBuy);
+  document.getElementById("confirm-buy-btn").addEventListener("click",confirmBuy);
+  document.getElementById("buy-amount").addEventListener("input",function(e){document.getElementById("modal-total").textContent=fc(parseFloat(e.target.value)||0);});
+  document.getElementById("close-sell-modal").addEventListener("click",closeSell);
+  document.getElementById("cancel-sell-btn").addEventListener("click",closeSell);
+  document.getElementById("confirm-sell-btn").addEventListener("click",confirmSell);
+  document.getElementById("sell-amount").addEventListener("input",function(e){var sym=STATE.currentSellAsset;if(!sym)return;var p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var amt=parseFloat(e.target.value)||0,cv=p.quantity*MP[sym].price,ratio=cv>0?Math.min(amt/cv,1):0,gain=amt-(p.invested*ratio);document.getElementById("sell-receive").textContent=fc(amt);document.getElementById("sell-gain-est").textContent=fc(gain);document.getElementById("sell-gain-est").style.color=gain>=0?"var(--success)":"var(--danger)";});
+  document.querySelectorAll(".sell-pct-btn").forEach(function(btn){btn.addEventListener("click",function(){var sym=STATE.currentSellAsset;if(!sym)return;var p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var amt=parseFloat((p.quantity*MP[sym].price*(parseInt(btn.dataset.pct)/100)).toFixed(2));document.getElementById("sell-amount").value=amt;document.getElementById("sell-amount").dispatchEvent(new Event("input"));});});
+  document.getElementById("logout-btn").addEventListener("click",function(){
+    if(confirm("Cerrar sesion?")){
+      localStorage.removeItem("inv_session");
+      _currentUID = null;
+      location.reload();
+    }
+  });
+  document.getElementById("go-matchup-btn").addEventListener("click",function(){nav("matchup");});
+  document.getElementById("create-league-btn").addEventListener("click",function(){
+    var name=document.getElementById("new-league-name").value.trim();
+    if(!name){toast("Escribe un nombre para tu liga");return;}
+    if(!STATE.myLeagues)STATE.myLeagues=[];
+    STATE.myLeagues.push({name:name,type:_leagueType,created:new Date().toISOString()});
+    document.getElementById("new-league-name").value="";
+    gainXP(50,"Liga creada");
+    save();
+    uLeag();
+    toast("Liga '"+name+"' creada!");
+  });
+  document.getElementById("subscribe-btn").addEventListener("click",function(){toast("Proximamente disponible. Gracias por tu interes!");});
+
+  // Compra de Investa Tokens
+  document.getElementById("buy-tokens-100").addEventListener("click",function(){
+    STATE.user.tokens+=100; save(); updShopTokens();
+    toast("🪙 +100 Investa Tokens añadidos a tu cuenta!");
+  });
+  document.getElementById("buy-tokens-500").addEventListener("click",function(){
+    STATE.user.tokens+=500; save(); updShopTokens();
+    toast("🪙 +500 Investa Tokens añadidos a tu cuenta!");
+  });
+
+  // Compra de USD Virtual
+  document.getElementById("buy-usd-5k").addEventListener("click",function(){
+    STATE.balance+=5000; save(); updBal();
+    toast("💵 +$5,000 USD virtuales añadidos a tu balance!");
+  });
+  document.getElementById("buy-usd-15k").addEventListener("click",function(){
+    STATE.balance+=15000; save(); updBal();
+    toast("💵 +$15,000 USD virtuales añadidos a tu balance!");
+  });
+  document.getElementById("buy-usd-50k").addEventListener("click",function(){
+    STATE.balance+=50000; save(); updBal();
+    toast("💵 +$50,000 USD virtuales añadidos a tu balance!");
+  });
+  document.getElementById("buy-usd-100k").addEventListener("click",function(){
+    STATE.balance+=100000; save(); updBal();
+    toast("💵 +$100,000 USD virtuales añadidos a tu balance!");
+  });
+  document.getElementById("edit-profile-btn").addEventListener("click",function(){document.getElementById("edit-name-input").value=STATE.user.name;document.getElementById("edit-avatar-preview").textContent=STATE.user.avatar;document.querySelectorAll(".avatar-opt").forEach(function(b){b.classList.toggle("selected",b.dataset.avatar===STATE.user.avatar);});showScreen("edit-profile");});
+  document.getElementById("edit-profile-back-btn").addEventListener("click",function(){nav("profile");});
+  document.getElementById("avatar-picker").addEventListener("click",function(e){var b=e.target.closest(".avatar-opt");if(!b)return;document.querySelectorAll(".avatar-opt").forEach(function(x){x.classList.remove("selected");});b.classList.add("selected");document.getElementById("edit-avatar-preview").textContent=b.dataset.avatar;});
+  document.getElementById("save-profile-btn").addEventListener("click",function(){
+    var n=document.getElementById("edit-name-input").value.trim();
+    if(!n){toast("Escribe un nombre");return;}
+    STATE.user.name=n;
+    STATE.user.avatar=document.getElementById("edit-avatar-preview").textContent;
+    document.getElementById("drawer-user-name").textContent=n;
+    // Actualizar nombre en sesion guardada
+    try{
+      var sess=JSON.parse(localStorage.getItem("inv_session")||"{}");
+      sess.name=n; sess.avatar=STATE.user.avatar;
+      localStorage.setItem("inv_session",JSON.stringify(sess));
+    }catch(e){}
+    save();
+    toast("Perfil actualizado");
+    nav("profile");
+  });
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("[data-buy]");if(b){openBuy(b.dataset.buy);return;}
+    var s=e.target.closest("[data-sell]");if(s){openSell(s.dataset.sell);return;}
+    var c=e.target.closest("[data-course]");if(c){startCourse(parseInt(c.dataset.course));return;}
+    var v=e.target.closest("[data-vid]");if(v){startVideo(v.dataset.vid);return;}
+    var ct=e.target.closest("[data-cert]");if(ct){startCert(ct.dataset.cert);return;}
+    var ch=e.target.closest("[data-challenge]");if(ch){joinChallenge(ch.dataset.challenge,parseInt(ch.dataset.xp),ch.dataset.label);return;}
+    var n=e.target.closest("[data-nav]");if(n){nav(n.dataset.nav);}
+  });
+
+  // ---- Precios en tiempo real ----
+  // Crypto: Binance WebSocket (CORS libre, sin key)
+  // Forex: Frankfurter API (open source, sin key)
+  // Acciones: Finnhub REST con tu key
+
+  window._wsConnected = false;
+
+  function initBinanceWS(){
+    var cryptoSymbols = ["btcusdt","ethusdt","solusdt","bnbusdt","xrpusdt",
+      "adausdt","dogeusdt","avaxusdt","linkusdt","dotusdt","ltcusdt"];
+    var streams = cryptoSymbols.map(function(s){return s+"@ticker";}).join("/");
+    var ws = new WebSocket("wss://stream.binance.com:9443/stream?streams="+streams);
+
+    ws.onopen = function(){
+      window._wsConnected = true;
+      console.log("Binance WS conectado");
+    };
+    ws.onmessage = function(e){
+      var msg = JSON.parse(e.data);
+      if(!msg.data) return;
+      var d = msg.data;
+      var sym = d.s.replace("USDT","");
+      if(MP[sym]){
+        MP[sym].price = parseFloat(d.c);
+        MP[sym].change = parseFloat(d.P);
+      }
+      var ac = document.querySelector(".screen.active");
+      if(ac && ac.dataset.screen === "markets") uMkts();
+    };
+    ws.onclose = function(){
+      window._wsConnected = false;
+      setTimeout(initBinanceWS, 3000);
+    };
+    ws.onerror = function(){ window._wsConnected = false; };
+  }
+
+  // Precios de referencia (cierre anterior hardcodeado, se actualiza en memoria)
+  var _fxRef = {
+    "USD/MXN":17.15,"USD/JPY":158.10,"EUR/USD":1.0820,"GBP/USD":1.3350,
+    "USD/CAD":1.3820,"USD/CHF":0.8950,"AUD/USD":0.6420,"USD/BRL":5.0200
+  };
+
+  function fetchForex(){
+    var ER_KEY = "22051142be38b915b2422cb6";
+    fetch("https://v6.exchangerate-api.com/v6/"+ER_KEY+"/latest/USD")
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d||d.result!=="success"||!d.conversion_rates) return;
+        var r=d.conversion_rates;
+        function upFX(sym, newPrice){
+          if(!MP[sym]) return;
+          var ref = _fxRef[sym] || newPrice;
+          MP[sym].price = parseFloat(newPrice.toFixed(4));
+          MP[sym].change = parseFloat(((newPrice-ref)/ref*100).toFixed(3));
+        }
+        if(r.MXN) upFX("USD/MXN",r.MXN);
+        if(r.JPY) upFX("USD/JPY",r.JPY);
+        if(r.CAD) upFX("USD/CAD",r.CAD);
+        if(r.CHF) upFX("USD/CHF",r.CHF);
+        if(r.BRL) upFX("USD/BRL",r.BRL);
+        if(r.EUR) upFX("EUR/USD",1/r.EUR);
+        if(r.GBP) upFX("GBP/USD",1/r.GBP);
+        if(r.AUD) upFX("AUD/USD",1/r.AUD);
+        refreshMarketUI();
+      }).catch(function(){});
+  }
+
+  function fetchStocks(){
+    var stocks=["AAPL","AMZN","TSLA","GOOGL","MSFT","NVDA","META","NFLX","UBER","AMD","COIN"];
+    var stockRef={
+      "AAPL":226.84,"AMZN":186.12,"TSLA":244.90,"GOOGL":165.54,"MSFT":422.86,
+      "NVDA":879.44,"META":519.83,"NFLX":634.02,"UBER":72.45,"AMD":172.30,"COIN":206.50
+    };
+    // Una sola llamada con todos los símbolos
+    var syms=stocks.join(",");
+    var url="https://query1.finance.yahoo.com/v7/finance/quote?symbols="+syms;
+    fetch("https://api.allorigins.win/get?url="+encodeURIComponent(url))
+      .then(function(r){return r.json();})
+      .then(function(w){
+        try{
+          var d=JSON.parse(w.contents);
+          var quotes=d.quoteResponse.result;
+          quotes.forEach(function(q){
+            var sym=q.symbol;
+            if(!MP[sym])return;
+            var price=q.regularMarketPrice;
+            var prev=q.regularMarketPreviousClose||stockRef[sym]||price;
+            MP[sym].price=price;
+            MP[sym].change=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
+          });
+          refreshMarketUI();
+        }catch(e){
+          // Fallback individual si falla el bulk
+          stocks.forEach(function(sym){
+            var url2="https://query1.finance.yahoo.com/v8/finance/chart/"+sym+"?interval=1d&range=1d";
+            fetch("https://corsproxy.io/?"+encodeURIComponent(url2))
+              .then(function(r){return r.json();})
+              .then(function(d){
+                try{
+                  var meta=d.chart.result[0].meta;
+                  if(meta&&meta.regularMarketPrice&&MP[sym]){
+                    var price=meta.regularMarketPrice;
+                    var prev=meta.chartPreviousClose||stockRef[sym]||price;
+                    MP[sym].price=price;
+                    MP[sym].change=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
+                    refreshMarketUI();
+                  }
+                }catch(e2){}
+              }).catch(function(){});
+          });
+        }
+      }).catch(function(){});
+  }
+
+  function refreshMarketUI(){
+    var ac = document.querySelector(".screen.active");
+    if(ac && ac.dataset.screen === "markets") uMkts();
+    if(STATE.portfolio && STATE.portfolio.length > 0){
+      updBal();
+      if(ac && ac.dataset.screen === "home") uHome();
+      if(ac && ac.dataset.screen === "portfolio") uPort();
+    }
+  }
+
+  // Iniciar todo
+  initBinanceWS();
+  fetchForex();
+  fetchStocks();
+  setInterval(fetchForex, 30000);
+  setInterval(fetchStocks, 30000);
+ // cada 15 segundos
+});
+})();
+</script>
+</div><!-- /app-shell -->
+</body>
+</html>
