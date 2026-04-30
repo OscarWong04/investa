@@ -220,7 +220,6 @@ function asPost(payload, callback){
     <h1 class="splash-title">Investa</h1>
     <p class="splash-subtitle">Aprende, invierte y compite en el mundo del trading</p>
     <button class="splash-btn" id="splash-start-btn">Comenzar</button>
-    <button id="demo-btn" style="background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:10px 32px;font-size:14px;font-weight:500;cursor:pointer;margin-top:12px;">Ver demo</button>
   </div>
 </section>
 <!-- LOGIN -->
@@ -953,31 +952,9 @@ function selectPlan(p){
 (function(){
 "use strict";
 var cBC=null,cSC=null,sAnim=null;
-var STATE={user:{name:"Usuario",email:"usuario@investa.com",avatar:"👤",level:1,xp:0,xpMax:100,tokens:100,isDemo:false},balance:10000,portfolio:[],transactions:[],vidDone:{},certDone:{},challengeDone:{},league:{players:[{name:"Carlos M.",investments:12,gain:8.4},{name:"Ana L.",investments:15,gain:7.2},{name:"Luis F.",investments:9,gain:6.8},{name:"Tu",investments:0,gain:0,isUser:true},{name:"Maria G.",investments:8,gain:5.3},{name:"Pedro S.",investments:14,gain:4.7},{name:"Sofia R.",investments:10,gain:3.2},{name:"Jorge D.",investments:7,gain:-1.5}]},courses:[{id:1,title:"Introduccion al Trading",level:"BASICO",completed:false,xp:50},{id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:false,xp:100},{id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}],achievements:[{id:1,name:"Primera inversion",icon:"🎯",unlocked:false},{id:2,name:"Diversificado",icon:"📊",unlocked:false},{id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},{id:4,name:"Estudiante dedicado",icon:"📚",unlocked:false}],currentBuyAsset:null,currentSellAsset:null};
+var STATE={user:{name:"Usuario",email:"usuario@investa.com",avatar:"👤",level:1,xp:0,xpMax:100,tokens:100},balance:10000,portfolio:[],transactions:[],vidDone:{},certDone:{},challengeDone:{},league:{players:[{name:"Carlos M.",investments:12,gain:8.4},{name:"Ana L.",investments:15,gain:7.2},{name:"Luis F.",investments:9,gain:6.8},{name:"Tu",investments:0,gain:0,isUser:true},{name:"Maria G.",investments:8,gain:5.3},{name:"Pedro S.",investments:14,gain:4.7},{name:"Sofia R.",investments:10,gain:3.2},{name:"Jorge D.",investments:7,gain:-1.5}]},courses:[{id:1,title:"Introduccion al Trading",level:"BASICO",completed:false,xp:50},{id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:false,xp:100},{id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}],achievements:[{id:1,name:"Primera inversion",icon:"🎯",unlocked:false},{id:2,name:"Diversificado",icon:"📊",unlocked:false},{id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},{id:4,name:"Estudiante dedicado",icon:"📚",unlocked:false}],currentBuyAsset:null,currentSellAsset:null};
 // MP definido globalmente arriba
 
-// ---- Perfil Demo ----
-var DEMO_STATE = {
-  user:{name:"InvestaDemo",email:"demo@investa.com",avatar:"🦁",level:5,xp:340,xpMax:750,tokens:500,isDemo:true},
-  balance:6500,
-  portfolio:[
-    {symbol:"BTC",quantity:0.03,buyPrice:62000,invested:1860},
-    {symbol:"AAPL",quantity:10,buyPrice:220,invested:2200},
-    {symbol:"ETH",quantity:0.5,buyPrice:3000,invested:1500},
-    {symbol:"SOL",quantity:20,buyPrice:160,invested:3200}
-  ],
-  transactions:[
-    {type:"buy",symbol:"BTC",amount:1860,price:62000,date:new Date(Date.now()-7*86400000).toISOString()},
-    {type:"buy",symbol:"AAPL",amount:2200,price:220,date:new Date(Date.now()-5*86400000).toISOString()},
-    {type:"buy",symbol:"ETH",amount:1500,price:3000,date:new Date(Date.now()-3*86400000).toISOString()},
-    {type:"sell",symbol:"TSLA",amount:800,price:245,date:new Date(Date.now()-1*86400000).toISOString()},
-    {type:"buy",symbol:"SOL",amount:3200,price:160,date:new Date(Date.now()-86400000/2).toISOString()}
-  ],
-  vidDone:{v1:true,v2:true},certDone:{},challengeDone:{d1:true,d2:true,t1:true},
-  myLeagues:[{name:"Liga Investa Friends",type:"privada",code:"DEMO01",members:["Carlos M.","Ana L.","Luis F.","Maria G.","Pedro S.","Sofia R.","Jorge D.","InvestaDemo"],created:new Date().toISOString()}],
-  achievements:[{id:1,name:"Primera inversion",icon:"🎯",unlocked:true},{id:2,name:"Diversificado",icon:"📊",unlocked:true},{id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},{id:4,name:"Estudiante dedicado",icon:"📚",unlocked:true}],
-  courses:[{id:1,title:"Introduccion al Trading",level:"BASICO",completed:true,xp:50},{id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:true,xp:100},{id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}]
-};
 var SCH=[{j:1,r:"Carlos M."},{j:2,r:"Ana L."},{j:3,r:"Luis F."},{j:4,r:"Maria G."},{j:5,r:"Pedro S."},{j:6,r:"Sofia R."},{j:7,r:"Jorge D."}];
 var CJ=1;
 var RP={"Carlos M.":[{s:"BTC",i:2500,p:8.4},{s:"AAPL",i:1800,p:3.2},{s:"ETH",i:900,p:-1.1}],"Ana L.":[{s:"TSLA",i:3000,p:7.2},{s:"SOL",i:1200,p:2.5}],"Luis F.":[{s:"AMZN",i:2000,p:6.8},{s:"USD/MXN",i:800,p:1.2}],"Maria G.":[{s:"ETH",i:1500,p:5.3},{s:"BTC",i:1000,p:4.1}],"Pedro S.":[{s:"AAPL",i:2200,p:4.7},{s:"AMZN",i:1600,p:3.0},{s:"SOL",i:600,p:-0.5}],"Sofia R.":[{s:"BTC",i:1800,p:3.2},{s:"USD/JPY",i:700,p:0.8}],"Jorge D.":[{s:"TSLA",i:900,p:-1.5},{s:"ETH",i:600,p:-2.0}]};
@@ -986,7 +963,6 @@ function toast(m){var t=document.getElementById("toast");t.textContent=m;t.class
 function updBal(){document.querySelectorAll(".balance").forEach(function(e){e.textContent=fc(STATE.balance);});}
 function save(){
   if(!_currentUID) return;
-  if(_currentUID === "demo") return; // No guardar en modo demo
   // Debounce: esperar 2s antes de guardar para no saturar la API
   if(_saveTimeout) clearTimeout(_saveTimeout);
   _saveTimeout = setTimeout(function(){
@@ -1554,56 +1530,6 @@ document.addEventListener("DOMContentLoaded",function(){
   });
 
   // Botón demo en splash (lo agregaremos al HTML)
-  var demoBtn=document.getElementById("demo-btn");
-  if(demoBtn){
-    demoBtn.addEventListener("click",function(){
-      try{if(sAnim){cancelAnimationFrame(sAnim);sAnim=null;}}catch(e){}
-      // Demo: solo sobreescribir datos de usuario, NO el MP
-      // Portfolio con cantidades relativas (los precios vienen del MP real)
-      STATE.user = {name:"InvestaDemo",email:"demo@investa.com",avatar:"🦁",
-        level:5,xp:340,xpMax:750,tokens:500,isDemo:true};
-      STATE.balance = 6500;
-      STATE.portfolio = [
-        {symbol:"BTC",  quantity:0.03,  buyPrice:62000, invested:1860},
-        {symbol:"AAPL", quantity:10,    buyPrice:220,   invested:2200},
-        {symbol:"ETH",  quantity:0.5,   buyPrice:3000,  invested:1500},
-        {symbol:"SOL",  quantity:20,    buyPrice:160,   invested:3200}
-      ];
-      STATE.transactions=[
-        {type:"buy",symbol:"BTC", amount:1860,price:62000,date:new Date(Date.now()-7*86400000).toISOString()},
-        {type:"buy",symbol:"AAPL",amount:2200,price:220,  date:new Date(Date.now()-5*86400000).toISOString()},
-        {type:"buy",symbol:"ETH", amount:1500,price:3000, date:new Date(Date.now()-3*86400000).toISOString()},
-        {type:"sell",symbol:"TSLA",amount:800,price:245,  date:new Date(Date.now()-86400000).toISOString()},
-        {type:"buy",symbol:"SOL", amount:3200,price:160,  date:new Date(Date.now()-43200000).toISOString()}
-      ];
-      STATE.vidDone={v1:true,v2:true};
-      STATE.certDone={};
-      STATE.challengeDone={d1:true,d2:true,t1:true};
-      STATE.myLeagues=[{
-        name:"Liga Investa Friends",type:"privada",code:"DEMO01",
-        members:["InvestaDemo","Carlos M.","Ana L.","Luis F.","Maria G.","Pedro S.","Sofia R.","Jorge D."],
-        startDate:new Date(Date.now()-14*86400000).toISOString(),
-        calendar:genCalendar(["InvestaDemo","Carlos M.","Ana L.","Luis F.","Maria G.","Pedro S.","Sofia R.","Jorge D."],26),
-        created:new Date(Date.now()-14*86400000).toISOString()
-      }];
-      STATE.achievements=[
-        {id:1,name:"Primera inversion",icon:"🎯",unlocked:true},
-        {id:2,name:"Diversificado",icon:"📊",unlocked:true},
-        {id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},
-        {id:4,name:"Estudiante dedicado",icon:"📚",unlocked:true}
-      ];
-      STATE.courses=[
-        {id:1,title:"Introduccion al Trading",level:"BASICO",completed:true,xp:50},
-        {id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:true,xp:100},
-        {id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}
-      ];
-      _currentUID = "demo";
-      document.getElementById("drawer-user-name").textContent=STATE.user.name;
-      showNav();
-      nav("home");
-      toast("Modo demo — Explora la app!");
-    });
-  }
   document.getElementById("login-btn").addEventListener("click",handleLogin);
 
   // Pantalla de registro
@@ -1785,53 +1711,41 @@ document.addEventListener("DOMContentLoaded",function(){
 
   window._wsConnected = false;
 
-  function initBinanceWS(){
-    var cryptoSymbols = ["btcusdt","ethusdt","solusdt","bnbusdt","xrpusdt",
-      "adausdt","dogeusdt","avaxusdt","linkusdt","dotusdt","ltcusdt"];
-    var streams = cryptoSymbols.map(function(s){return s+"@ticker";}).join("/");
-    var ws = new WebSocket("wss://stream.binance.com:9443/stream?streams="+streams);
+  // ======= PRECIOS EN TIEMPO REAL =======
 
-    ws.onopen = function(){
-      window._wsConnected = true;
-      console.log("Binance WS conectado");
+  // Crypto: Binance WebSocket
+  function initBinanceWS(){
+    var syms=["btcusdt","ethusdt","solusdt","bnbusdt","xrpusdt","adausdt","dogeusdt","avaxusdt","linkusdt","dotusdt","ltcusdt"];
+    var streams=syms.map(function(s){return s+"@ticker";}).join("/");
+    var ws=new WebSocket("wss://stream.binance.com:9443/stream?streams="+streams);
+    ws.onopen=function(){ window._wsConnected=true; };
+    ws.onmessage=function(e){
+      try{
+        var msg=JSON.parse(e.data);
+        if(!msg.data) return;
+        var d=msg.data;
+        var sym=d.s.replace("USDT","");
+        if(MP[sym]){ MP[sym].price=parseFloat(d.c); MP[sym].change=parseFloat(d.P); }
+        refreshMarketUI();
+      }catch(ex){}
     };
-    ws.onmessage = function(e){
-      var msg = JSON.parse(e.data);
-      if(!msg.data) return;
-      var d = msg.data;
-      var sym = d.s.replace("USDT","");
-      if(MP[sym]){
-        MP[sym].price = parseFloat(d.c);
-        MP[sym].change = parseFloat(d.P);
-      }
-      var ac = document.querySelector(".screen.active");
-      if(ac && ac.dataset.screen === "markets") uMkts();
-    };
-    ws.onclose = function(){
-      window._wsConnected = false;
-      setTimeout(initBinanceWS, 3000);
-    };
-    ws.onerror = function(){ window._wsConnected = false; };
+    ws.onclose=function(){ window._wsConnected=false; setTimeout(initBinanceWS,3000); };
+    ws.onerror=function(){ window._wsConnected=false; };
   }
 
-  // Precios de referencia (cierre anterior hardcodeado, se actualiza en memoria)
-  var _fxRef = {
-    "USD/MXN":17.15,"USD/JPY":158.10,"EUR/USD":1.0820,"GBP/USD":1.3350,
-    "USD/CAD":1.3820,"USD/CHF":0.8950,"AUD/USD":0.6420,"USD/BRL":5.0200
-  };
-
+  // Forex: ExchangeRate-API
+  var _fxRef={"USD/MXN":17.15,"USD/JPY":158.10,"EUR/USD":1.0820,"GBP/USD":1.3350,"USD/CAD":1.3820,"USD/CHF":0.8950,"AUD/USD":0.6420,"USD/BRL":5.0200};
   function fetchForex(){
-    var ER_KEY = "22051142be38b915b2422cb6";
-    fetch("https://v6.exchangerate-api.com/v6/"+ER_KEY+"/latest/USD")
+    fetch("https://v6.exchangerate-api.com/v6/22051142be38b915b2422cb6/latest/USD")
       .then(function(r){return r.json();})
       .then(function(d){
         if(!d||d.result!=="success"||!d.conversion_rates) return;
         var r=d.conversion_rates;
-        function upFX(sym, newPrice){
+        function upFX(sym,newPrice){
           if(!MP[sym]) return;
-          var ref = _fxRef[sym] || newPrice;
-          MP[sym].price = parseFloat(newPrice.toFixed(4));
-          MP[sym].change = parseFloat(((newPrice-ref)/ref*100).toFixed(3));
+          var ref=_fxRef[sym]||newPrice;
+          MP[sym].price=parseFloat(newPrice.toFixed(4));
+          MP[sym].change=parseFloat(((newPrice-ref)/ref*100).toFixed(3));
         }
         if(r.MXN) upFX("USD/MXN",r.MXN);
         if(r.JPY) upFX("USD/JPY",r.JPY);
@@ -1842,50 +1756,59 @@ document.addEventListener("DOMContentLoaded",function(){
         if(r.GBP) upFX("GBP/USD",1/r.GBP);
         if(r.AUD) upFX("AUD/USD",1/r.AUD);
         refreshMarketUI();
-      }).catch(function(){});
+      }).catch(function(){
+        // Fallback Frankfurter
+        fetch("https://api.frankfurter.app/latest?from=USD&to=MXN,JPY,EUR,GBP,CAD,CHF,AUD,BRL")
+          .then(function(r){return r.json();})
+          .then(function(d){
+            if(!d||!d.rates) return;
+            var r=d.rates;
+            if(r.MXN){MP["USD/MXN"].price=parseFloat(r.MXN.toFixed(4));MP["USD/MXN"].change=parseFloat(((r.MXN-_fxRef["USD/MXN"])/_fxRef["USD/MXN"]*100).toFixed(3));}
+            if(r.JPY){MP["USD/JPY"].price=parseFloat(r.JPY.toFixed(4));MP["USD/JPY"].change=parseFloat(((r.JPY-_fxRef["USD/JPY"])/_fxRef["USD/JPY"]*100).toFixed(3));}
+            if(r.CAD){MP["USD/CAD"].price=parseFloat(r.CAD.toFixed(4));}
+            if(r.CHF){MP["USD/CHF"].price=parseFloat(r.CHF.toFixed(4));}
+            if(r.BRL){MP["USD/BRL"].price=parseFloat(r.BRL.toFixed(4));}
+            if(r.EUR){var v=1/r.EUR;MP["EUR/USD"].price=parseFloat(v.toFixed(5));}
+            if(r.GBP){var v=1/r.GBP;MP["GBP/USD"].price=parseFloat(v.toFixed(5));}
+            if(r.AUD){var v=1/r.AUD;MP["AUD/USD"].price=parseFloat(v.toFixed(5));}
+            refreshMarketUI();
+          }).catch(function(){});
+      });
   }
 
+  // Acciones: Yahoo Finance via proxy
   function fetchStocks(){
     var stocks=["AAPL","AMZN","TSLA","GOOGL","MSFT","NVDA","META","NFLX","UBER","AMD","COIN"];
-    var stockRef={
-      "AAPL":226.84,"AMZN":186.12,"TSLA":244.90,"GOOGL":165.54,"MSFT":422.86,
-      "NVDA":879.44,"META":519.83,"NFLX":634.02,"UBER":72.45,"AMD":172.30,"COIN":206.50
-    };
-    // Una sola llamada con todos los símbolos
+    var stockRef={"AAPL":226.84,"AMZN":186.12,"TSLA":244.90,"GOOGL":165.54,"MSFT":422.86,"NVDA":879.44,"META":519.83,"NFLX":634.02,"UBER":72.45,"AMD":172.30,"COIN":206.50};
     var syms=stocks.join(",");
-    var url="https://query1.finance.yahoo.com/v7/finance/quote?symbols="+syms;
-    fetch("https://api.allorigins.win/get?url="+encodeURIComponent(url))
+    fetch("https://api.allorigins.win/get?url="+encodeURIComponent("https://query1.finance.yahoo.com/v7/finance/quote?symbols="+syms))
       .then(function(r){return r.json();})
       .then(function(w){
         try{
-          var d=JSON.parse(w.contents);
-          var quotes=d.quoteResponse.result;
+          var quotes=JSON.parse(w.contents).quoteResponse.result;
           quotes.forEach(function(q){
-            var sym=q.symbol;
-            if(!MP[sym])return;
+            if(!MP[q.symbol]) return;
             var price=q.regularMarketPrice;
-            var prev=q.regularMarketPreviousClose||stockRef[sym]||price;
-            MP[sym].price=price;
-            MP[sym].change=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
+            var prev=q.regularMarketPreviousClose||stockRef[q.symbol]||price;
+            MP[q.symbol].price=price;
+            MP[q.symbol].change=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
           });
           refreshMarketUI();
-        }catch(e){
-          // Fallback individual si falla el bulk
+        }catch(ex){
+          // Fallback individual
           stocks.forEach(function(sym){
-            var url2="https://query1.finance.yahoo.com/v8/finance/chart/"+sym+"?interval=1d&range=1d";
-            fetch("https://corsproxy.io/?"+encodeURIComponent(url2))
+            fetch("https://corsproxy.io/?"+encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/"+sym+"?interval=1d&range=1d"))
               .then(function(r){return r.json();})
               .then(function(d){
                 try{
                   var meta=d.chart.result[0].meta;
                   if(meta&&meta.regularMarketPrice&&MP[sym]){
-                    var price=meta.regularMarketPrice;
-                    var prev=meta.chartPreviousClose||stockRef[sym]||price;
-                    MP[sym].price=price;
-                    MP[sym].change=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
+                    var prev=meta.chartPreviousClose||stockRef[sym]||meta.regularMarketPrice;
+                    MP[sym].price=meta.regularMarketPrice;
+                    MP[sym].change=prev>0?parseFloat(((meta.regularMarketPrice-prev)/prev*100).toFixed(2)):0;
                     refreshMarketUI();
                   }
-                }catch(e2){}
+                }catch(e){}
               }).catch(function(){});
           });
         }
@@ -1893,28 +1816,24 @@ document.addEventListener("DOMContentLoaded",function(){
   }
 
   function refreshMarketUI(){
-    var ac = document.querySelector(".screen.active");
-    if(ac && ac.dataset.screen === "markets") uMkts();
-    if(STATE.portfolio && STATE.portfolio.length > 0){
+    var ac=document.querySelector(".screen.active");
+    if(ac&&ac.dataset.screen==="markets") uMkts();
+    if(STATE.portfolio&&STATE.portfolio.length>0){
       updBal();
-      if(ac && ac.dataset.screen === "home") uHome();
-      if(ac && ac.dataset.screen === "portfolio") uPort();
+      if(ac&&ac.dataset.screen==="home") uHome();
+      if(ac&&ac.dataset.screen==="portfolio") uPort();
     }
   }
 
-  // Iniciar todo
+  // Arrancar todo
   initBinanceWS();
   fetchForex();
   fetchStocks();
-  // Actualizar UI de mercados después de 3s para dar tiempo a las APIs
-  setTimeout(function(){
-    var ac=document.querySelector(".screen.active");
-    if(ac&&ac.dataset.screen==="markets") uMkts();
-  }, 3000);
   setInterval(fetchForex, 30000);
   setInterval(fetchStocks, 30000);
- // cada 15 segundos
-});
+  setTimeout(function(){ refreshMarketUI(); }, 4000);
+
+}); // DOMContentLoaded
 })();
 </script>
 </div><!-- /app-shell -->
