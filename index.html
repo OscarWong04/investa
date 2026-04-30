@@ -986,6 +986,7 @@ function toast(m){var t=document.getElementById("toast");t.textContent=m;t.class
 function updBal(){document.querySelectorAll(".balance").forEach(function(e){e.textContent=fc(STATE.balance);});}
 function save(){
   if(!_currentUID) return;
+  if(_currentUID === "demo") return; // No guardar en modo demo
   // Debounce: esperar 2s antes de guardar para no saturar la API
   if(_saveTimeout) clearTimeout(_saveTimeout);
   _saveTimeout = setTimeout(function(){
@@ -1557,13 +1558,50 @@ document.addEventListener("DOMContentLoaded",function(){
   if(demoBtn){
     demoBtn.addEventListener("click",function(){
       try{if(sAnim){cancelAnimationFrame(sAnim);sAnim=null;}}catch(e){}
-      // Cargar estado demo
-      Object.assign(STATE, JSON.parse(JSON.stringify(DEMO_STATE)));
+      // Demo: solo sobreescribir datos de usuario, NO el MP
+      // Portfolio con cantidades relativas (los precios vienen del MP real)
+      STATE.user = {name:"InvestaDemo",email:"demo@investa.com",avatar:"🦁",
+        level:5,xp:340,xpMax:750,tokens:500,isDemo:true};
+      STATE.balance = 6500;
+      STATE.portfolio = [
+        {symbol:"BTC",  quantity:0.03,  buyPrice:62000, invested:1860},
+        {symbol:"AAPL", quantity:10,    buyPrice:220,   invested:2200},
+        {symbol:"ETH",  quantity:0.5,   buyPrice:3000,  invested:1500},
+        {symbol:"SOL",  quantity:20,    buyPrice:160,   invested:3200}
+      ];
+      STATE.transactions=[
+        {type:"buy",symbol:"BTC", amount:1860,price:62000,date:new Date(Date.now()-7*86400000).toISOString()},
+        {type:"buy",symbol:"AAPL",amount:2200,price:220,  date:new Date(Date.now()-5*86400000).toISOString()},
+        {type:"buy",symbol:"ETH", amount:1500,price:3000, date:new Date(Date.now()-3*86400000).toISOString()},
+        {type:"sell",symbol:"TSLA",amount:800,price:245,  date:new Date(Date.now()-86400000).toISOString()},
+        {type:"buy",symbol:"SOL", amount:3200,price:160,  date:new Date(Date.now()-43200000).toISOString()}
+      ];
+      STATE.vidDone={v1:true,v2:true};
+      STATE.certDone={};
+      STATE.challengeDone={d1:true,d2:true,t1:true};
+      STATE.myLeagues=[{
+        name:"Liga Investa Friends",type:"privada",code:"DEMO01",
+        members:["InvestaDemo","Carlos M.","Ana L.","Luis F.","Maria G.","Pedro S.","Sofia R.","Jorge D."],
+        startDate:new Date(Date.now()-14*86400000).toISOString(),
+        calendar:genCalendar(["InvestaDemo","Carlos M.","Ana L.","Luis F.","Maria G.","Pedro S.","Sofia R.","Jorge D."],26),
+        created:new Date(Date.now()-14*86400000).toISOString()
+      }];
+      STATE.achievements=[
+        {id:1,name:"Primera inversion",icon:"🎯",unlocked:true},
+        {id:2,name:"Diversificado",icon:"📊",unlocked:true},
+        {id:3,name:"Ganador de la semana",icon:"🏆",unlocked:false},
+        {id:4,name:"Estudiante dedicado",icon:"📚",unlocked:true}
+      ];
+      STATE.courses=[
+        {id:1,title:"Introduccion al Trading",level:"BASICO",completed:true,xp:50},
+        {id:2,title:"Analisis Tecnico",level:"INTERMEDIO",completed:true,xp:100},
+        {id:3,title:"Gestion de Riesgo",level:"AVANZADO",completed:false,xp:150}
+      ];
       _currentUID = "demo";
       document.getElementById("drawer-user-name").textContent=STATE.user.name;
       showNav();
       nav("home");
-      toast("Modo demo activado - Explora la app!");
+      toast("Modo demo — Explora la app!");
     });
   }
   document.getElementById("login-btn").addEventListener("click",handleLogin);
@@ -1868,6 +1906,11 @@ document.addEventListener("DOMContentLoaded",function(){
   initBinanceWS();
   fetchForex();
   fetchStocks();
+  // Actualizar UI de mercados después de 3s para dar tiempo a las APIs
+  setTimeout(function(){
+    var ac=document.querySelector(".screen.active");
+    if(ac&&ac.dataset.screen==="markets") uMkts();
+  }, 3000);
   setInterval(fetchForex, 30000);
   setInterval(fetchStocks, 30000);
  // cada 15 segundos
