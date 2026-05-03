@@ -342,39 +342,56 @@ function asPost(payload, callback){
 
     <!-- TAB: MIS LIGAS -->
     <div id="ltab-amigos">
-      <!-- Liga de amigos pregrabada -->
-      <div class="card" style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <div>
-            <h3 style="font-size:16px;font-weight:700;">Liga Investa Friends</h3>
-            <p style="font-size:12px;color:var(--muted);">Privada · 8 miembros</p>
-          </div>
-          <span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);">Activa</span>
-        </div>
-        <table class="league-table"><thead><tr><th>Pos</th><th>Usuario</th><th>Inv.</th><th>% Gan.</th></tr></thead><tbody id="league-tbody"></tbody></table>
-        <div class="stat-card" style="margin-top:12px;margin-bottom:0;">
-          <div class="stat-row"><span class="stat-label">Tu ranking</span><span class="stat-value" id="user-rank">#4</span></div>
-          <div class="stat-row"><span class="stat-label">Ganancia semanal</span><span class="stat-value" id="user-weekly-gain" style="color:var(--success);">+0.0%</span></div>
-        </div>
-      </div>
-      <button class="btn-matchup" id="go-matchup-btn" style="margin-bottom:16px;">Ver enfrentamiento de la semana</button>
+      <!-- Mis ligas activas -->
+      <div id="my-leagues-list" style="margin-bottom:12px;"></div>
 
-      <!-- Crear liga -->
-      <div class="card">
-        <div class="card-title">➕ Crear nueva liga</div>
+      <!-- Crear liga privada -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-title">➕ Crear liga privada</div>
         <div class="input-group" style="margin-bottom:12px;">
           <label>Nombre de la liga</label>
           <input type="text" id="new-league-name" class="input" placeholder="Ej: Liga con mis amigos" maxlength="30">
         </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:14px;font-weight:500;display:block;margin-bottom:8px;">Tipo</label>
-          <div style="display:flex;gap:8px;">
-            <button class="league-type-btn active" data-type="privada" onclick="selectLeagueType('privada')" style="flex:1;padding:10px;border:2px solid var(--primary);border-radius:10px;background:rgba(107,70,193,0.08);font-size:13px;font-weight:600;cursor:pointer;color:var(--primary);">🔒 Privada</button>
-            <button class="league-type-btn" data-type="publica" onclick="selectLeagueType('publica')" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;background:var(--bg);font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);">🌐 Pública</button>
-          </div>
-        </div>
         <button class="btn btn-primary" id="create-league-btn">Crear liga</button>
-        <div id="my-leagues-list" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- Unirse con código -->
+      <div class="card">
+        <div class="card-title">🔗 Unirse a una liga</div>
+        <div class="input-group" style="margin-bottom:12px;">
+          <label>Código de invitación</label>
+          <input type="text" id="join-league-code" class="input" placeholder="Ej: ABC123" maxlength="8" style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:700;text-align:center;">
+        </div>
+        <button class="btn btn-secondary" id="join-league-btn">Unirse</button>
+      </div>
+    </div>
+
+    <!-- TAB: DETALLE DE LIGA -->
+    <div id="ltab-detalle" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <button onclick="switchLeagueTab('amigos')" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--primary);padding:0;">←</button>
+        <h3 id="detalle-nombre" style="font-size:16px;font-weight:700;margin:0;"></h3>
+      </div>
+      <div class="card" style="text-align:center;margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Código de invitación</div>
+        <div id="detalle-codigo" style="font-size:30px;font-weight:800;letter-spacing:6px;color:var(--primary);margin-bottom:10px;"></div>
+        <button onclick="copiarCodigo()" class="btn btn-secondary" style="padding:8px 20px;font-size:13px;">📋 Copiar código</button>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+          <div id="detalle-temporada-info" style="font-size:13px;font-weight:600;color:var(--primary);"></div>
+          <span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);">Activa</span>
+        </div>
+        <table class="league-table"><thead><tr><th>Pos</th><th>Usuario</th><th>Inv.</th><th>% Gan.</th></tr></thead><tbody id="league-tbody"></tbody></table>
+        <div class="stat-card" style="margin-top:12px;margin-bottom:0;">
+          <div class="stat-row"><span class="stat-label">Tu ranking</span><span class="stat-value" id="user-rank">#-</span></div>
+          <div class="stat-row"><span class="stat-label">Ganancia semanal</span><span class="stat-value" id="user-weekly-gain" style="color:var(--success);">+0.0%</span></div>
+        </div>
+      </div>
+      <button class="btn-matchup" id="go-matchup-btn" style="margin-bottom:16px;">⚔️ Ver enfrentamiento de la semana</button>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">📅 Calendario</div>
+        <div id="detalle-calendario"></div>
       </div>
     </div>
 
@@ -924,12 +941,7 @@ function askChip(q){
   sendChat();
 }
 
-function switchLeagueTab(tab){
-  ["amigos","rangos","nacional"].forEach(function(t){
-    document.getElementById("ltab-"+t).style.display=t===tab?"block":"none";
-    document.querySelectorAll(".league-tab").forEach(function(b){b.classList.toggle("active",b.dataset.ltab===tab);});
-  });
-}
+// switchLeagueTab definido en script global
 var _leagueType="privada";
 function selectLeagueType(type){
   _leagueType=type;
@@ -941,6 +953,102 @@ function selectLeagueType(type){
   });
 }
 
+
+function switchLeagueTab(tab){
+  ["amigos","detalle","rangos","nacional"].forEach(function(t){
+    var el=document.getElementById("ltab-"+t);
+    if(el) el.style.display=t===tab?"block":"none";
+  });
+  document.querySelectorAll(".league-tab").forEach(function(b){
+    b.classList.toggle("active",b.dataset.ltab===tab);
+  });
+}
+function genLeagueCode(){
+  var chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var code="";for(var i=0;i<6;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+function genCalendar(members){
+  var n=members.length; if(n<2) return [];
+  var partidos=[];
+  for(var i=0;i<n;i++) for(var j=i+1;j<n;j++) partidos.push({local:members[i],visitante:members[j]});
+  var jornadasPorTemp=17;
+  partidos.forEach(function(p,idx){
+    p.temporada=Math.floor(idx/jornadasPorTemp)+1;
+    p.jornada=(idx%jornadasPorTemp)+1;
+  });
+  return partidos;
+}
+function getJornadaActual(league){
+  if(!league.startDate) return {temporada:1,jornada:1};
+  var semanas=Math.floor((new Date()-new Date(league.startDate))/(7*86400000));
+  var jornadasPorTemp=17;
+  return {temporada:Math.floor(semanas/jornadasPorTemp)+1, jornada:(semanas%jornadasPorTemp)+1};
+}
+var _ligaViendo=null;
+function copiarCodigo(){
+  var code=document.getElementById("detalle-codigo").textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(code).then(function(){toast("Código "+code+" copiado!");});
+  else toast("Código: "+code);
+}
+function verDetalleLiga(idx){
+  _ligaViendo=STATE.myLeagues[idx];
+  var lg=_ligaViendo;
+  var info=getJornadaActual(lg);
+  var members=lg.members||[STATE.user.name];
+
+  document.getElementById("detalle-nombre").textContent=lg.name;
+  document.getElementById("detalle-codigo").textContent=lg.code||"------";
+  document.getElementById("detalle-temporada-info").textContent="Temporada "+info.temporada+" · Jornada "+info.jornada;
+
+  // Tabla clasificación
+  var myInv=0,myCur=0;
+  STATE.portfolio.forEach(function(p){myInv+=p.invested;myCur+=p.quantity*(MP[p.symbol]?MP[p.symbol].price:p.buyPrice);});
+  var myGain=myInv>0?((myCur-myInv)/myInv*100):0;
+  var standings=members.map(function(m,i){
+    if(m===STATE.user.name) return{name:m,gain:myGain,investments:STATE.portfolio.length,isUser:true};
+    var seed=m.charCodeAt(0)+(m.charCodeAt(m.length-1)||0);
+    return{name:m,gain:parseFloat(((seed%30)-10).toFixed(2)),investments:Math.floor(seed%8)+1,isUser:false};
+  });
+  standings.sort(function(a,b){return b.gain-a.gain;});
+  var tb=document.getElementById("league-tbody");
+  if(tb){
+    tb.innerHTML="";
+    var myPos=1;
+    standings.forEach(function(p,i){
+      if(p.isUser) myPos=i+1;
+      var row=document.createElement("tr");
+      if(p.isUser) row.classList.add("highlight");
+      var bc=i===0?"var(--primary)":(i===1?"#C0C0C0":(i===2?"#cd7f32":"var(--muted)"));
+      row.innerHTML='<td><span class="rank-badge" style="background:'+bc+';">'+(i+1)+'</span></td><td style="font-weight:'+(p.isUser?700:500)+';">'+p.name+'</td><td>'+p.investments+'</td><td style="color:'+(p.gain>=0?"var(--success)":"var(--danger)")+';font-weight:600;">'+fp(p.gain)+'</td>';
+      tb.appendChild(row);
+    });
+    document.getElementById("user-rank").textContent="#"+myPos;
+    document.getElementById("user-weekly-gain").textContent=fp(myGain);
+    document.getElementById("user-weekly-gain").style.color=myGain>=0?"var(--success)":"var(--danger)";
+  }
+
+  // Calendario
+  var cal=lg.calendar||[];
+  var misPartidos=cal.filter(function(p){return p.local===STATE.user.name||p.visitante===STATE.user.name;});
+  var calHtml="";
+  if(misPartidos.length===0){
+    calHtml='<p style="color:var(--muted);font-size:13px;text-align:center;">Se necesitan al menos 2 miembros para el calendario</p>';
+  } else {
+    misPartidos.slice(0,15).forEach(function(p){
+      var rival=p.local===STATE.user.name?p.visitante:p.local;
+      var isCurrent=p.temporada===info.temporada&&p.jornada===info.jornada;
+      var isPast=p.temporada<info.temporada||(p.temporada===info.temporada&&p.jornada<info.jornada);
+      var cls,txt;
+      if(isCurrent){cls="now";txt="En curso";}
+      else if(isPast){var w=Math.random()>.45;cls=w?"win":"loss";txt=w?"Victoria":"Derrota";}
+      else{cls="pending";txt="Pendiente";}
+      calHtml+='<div class="cal-row"><div class="cal-num">T'+p.temporada+' J'+p.jornada+'</div><div class="cal-name">'+rival+'</div><div class="cal-badge '+cls+'">'+txt+'</div></div>';
+    });
+  }
+  document.getElementById("detalle-calendario").innerHTML=calHtml;
+  switchLeagueTab("detalle");
+}
 
 function selectPlan(p){
   document.getElementById("plan-monthly").style.borderColor=p==="monthly"?"var(--primary)":"var(--border)";
@@ -1044,8 +1152,32 @@ function getTotalXP(){var total=STATE.user.xp;var xpMax=100;for(var i=1;i<STATE.
 function getRangoActual(){var total=getTotalXP();for(var i=RANGOS.length-1;i>=0;i--){if(total>=RANGOS[i].xpMin)return i;}return 0;}
 function uLeag(){
   updBal();
+  // Renderizar lista de ligas del usuario
+  var mll=document.getElementById("my-leagues-list");
+  if(mll){
+    var leagues=STATE.myLeagues||[];
+    if(leagues.length===0){
+      mll.innerHTML='<div class="card" style="text-align:center;padding:20px;margin-bottom:12px;"><div style="font-size:36px;margin-bottom:8px;">🏆</div><p style="font-weight:600;margin-bottom:4px;">Sin ligas todavía</p><p style="color:var(--muted);font-size:13px;">Crea una o únete con un código</p></div>';
+    } else {
+      var html="";
+      leagues.forEach(function(lg,idx){
+        var members=lg.members||[STATE.user.name];
+        var info=getJornadaActual(lg);
+        html+='<div class="card" style="margin-bottom:10px;cursor:pointer;" onclick="verDetalleLiga('+idx+')">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+          '<div><div style="font-size:15px;font-weight:700;">'+lg.name+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);margin-top:2px;">🔒 Privada · '+members.length+' miembro'+(members.length!==1?'s':'')+'</div></div>'+
+          '<span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);">Activa</span></div>'+
+          '<div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">'+
+          '<span style="font-size:12px;color:var(--muted);">Código: <b style="color:var(--primary);letter-spacing:2px;">'+lg.code+'</b></span>'+
+          '<span style="font-size:12px;color:var(--primary);font-weight:600;">Ver liga →</span></div></div>';
+      });
+      mll.innerHTML=html;
+    }
+  }
+  // Tabla de la liga en detalle (si está abierto)
   var tb=document.getElementById("league-tbody");
-  if(tb){tb.innerHTML="";var uP=0;STATE.league.players.forEach(function(p,i){var row=document.createElement("tr");if(p.isUser){row.classList.add("highlight");uP=i+1;}var bc=i===0?"var(--primary)":(i<=2?"#cd7f32":(p.isUser?"var(--accent)":"var(--muted)"));row.innerHTML='<td><span class="rank-badge" style="background:'+bc+';">'+(i+1)+'</span></td><td style="font-weight:'+(p.isUser?'700':'600')+';">'+p.name+'</td><td>'+p.investments+'</td><td style="color:'+(p.gain>=0?'var(--success)':'var(--danger)')+';font-weight:600;">'+fp(p.gain)+'</td>';tb.appendChild(row);});var u=STATE.league.players.find(function(p){return p.isUser;});document.getElementById("user-rank").textContent="#"+uP;document.getElementById("user-weekly-gain").textContent=fp(u.gain);document.getElementById("user-weekly-gain").style.color=u.gain>=0?"var(--success)":"var(--danger)";}
+  if(tb&&_ligaViendo){tb.innerHTML="";var uP=0;(_ligaViendo.members||[STATE.user.name]).forEach(function(p,i){var row=document.createElement("tr");if(p.isUser){row.classList.add("highlight");uP=i+1;}var bc=i===0?"var(--primary)":(i<=2?"#cd7f32":(p.isUser?"var(--accent)":"var(--muted)"));row.innerHTML='<td><span class="rank-badge" style="background:'+bc+';">'+(i+1)+'</span></td><td style="font-weight:'+(p.isUser?'700':'600')+';">'+p.name+'</td><td>'+p.investments+'</td><td style="color:'+(p.gain>=0?'var(--success)':'var(--danger)')+';font-weight:600;">'+fp(p.gain)+'</td>';tb.appendChild(row);});var u=STATE.league.players.find(function(p){return p.isUser;});document.getElementById("user-rank").textContent="#"+uP;document.getElementById("user-weekly-gain").textContent=fp(u.gain);document.getElementById("user-weekly-gain").style.color=u.gain>=0?"var(--success)":"var(--danger)";}
   var mll=document.getElementById("my-leagues-list");
   if(mll){if(!STATE.myLeagues||STATE.myLeagues.length===0){mll.innerHTML="";}else{var lh='<div class="card-title" style="margin-top:4px;">Mis ligas creadas</div>';STATE.myLeagues.forEach(function(l){lh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:10px;margin-bottom:6px;"><div><div style="font-size:14px;font-weight:600;">'+l.name+'</div><div style="font-size:11px;color:var(--muted);">'+(l.type==="privada"?"🔒 Privada":"🌐 Publica")+'</div></div><span class="badge" style="background:rgba(16,185,129,0.12);color:var(--success);">Activa</span></div>';});mll.innerHTML=lh;}}
   var totalXP=getTotalXP();var ri=getRangoActual();var rango=RANGOS[ri];var xpEnRango=totalXP-rango.xpMin;var xpNecesario=rango.xpMax-rango.xpMin;var pct=Math.min(100,(xpEnRango/xpNecesario*100)).toFixed(0);
@@ -1356,13 +1488,45 @@ document.addEventListener("DOMContentLoaded",function(){
   document.getElementById("create-league-btn").addEventListener("click",function(){
     var name=document.getElementById("new-league-name").value.trim();
     if(!name){toast("Escribe un nombre para tu liga");return;}
-    if(!STATE.myLeagues)STATE.myLeagues=[];
-    STATE.myLeagues.push({name:name,type:_leagueType,created:new Date().toISOString()});
+    if(!STATE.myLeagues) STATE.myLeagues=[];
+    var code=genLeagueCode();
+    var startDate=new Date().toISOString();
+    var members=[STATE.user.name];
+    var newLg={name:name,type:"privada",code:code,members:members,startDate:startDate,calendar:genCalendar(members),created:startDate};
+    STATE.myLeagues.push(newLg);
     document.getElementById("new-league-name").value="";
     gainXP(50,"Liga creada");
-    save();
-    uLeag();
-    toast("Liga '"+name+"' creada!");
+    asPost({action:"saveLeague",league:newLg},function(){});
+    save(); uLeag();
+    toast("Liga '"+name+"' creada! Código: "+code);
+  });
+  document.getElementById("join-league-btn").addEventListener("click",function(){
+    var code=document.getElementById("join-league-code").value.trim().toUpperCase();
+    if(code.length<4){toast("Ingresa el código de invitación");return;}
+    var already=(STATE.myLeagues||[]).find(function(l){return l.code===code;});
+    if(already){toast("Ya perteneces a esa liga");return;}
+    var btn=document.getElementById("join-league-btn");
+    btn.textContent="Buscando...";btn.disabled=true;
+    asPost({action:"joinLeague",uid:_currentUID,code:code,userName:STATE.user.name},function(r){
+      btn.textContent="Unirse";btn.disabled=false;
+      if(r.ok&&r.league){
+        if(!STATE.myLeagues) STATE.myLeagues=[];
+        var lg=r.league;
+        if(!lg.members) lg.members=[];
+        if(lg.members.indexOf(STATE.user.name)===-1){
+          lg.members.push(STATE.user.name);
+          lg.calendar=genCalendar(lg.members);
+          asPost({action:"saveLeague",league:lg},function(){});
+        }
+        STATE.myLeagues.push(lg);
+        document.getElementById("join-league-code").value="";
+        gainXP(20,"Unido a liga");
+        save(); uLeag();
+        toast("Te uniste a '"+lg.name+"'!");
+      } else {
+        toast(r.error||"Código no encontrado");
+      }
+    });
   });
   document.getElementById("subscribe-btn").addEventListener("click",function(){toast("Proximamente disponible. Gracias por tu interes!");});
 
