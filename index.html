@@ -10,12 +10,12 @@
 :root{--primary:#6B46C1;--primary-dark:#553399;--accent:#2DD4BF;--bg:#F8F7FB;--ink:#1A1A1A;--muted:#8A8A99;--card-bg:#FFFFFF;--success:#10B981;--danger:#EF4444;--border:#E5E5EA;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#0f0c29 0%,#1a0533 40%,#0b2d5e 100%);color:var(--ink);width:100%;height:100dvh;height:100vh;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;}
 #app-shell{background:var(--bg);width:100%;max-width:430px;height:100dvh;height:100vh;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(107,70,193,0.4);}
-.screen{display:none;padding:0;height:100%;overflow:hidden;flex-direction:column;}
-.screen.active{display:flex;height:100%;}
+.screen{display:none;padding:0;flex:1;overflow:hidden;flex-direction:column;}
+.screen.active{display:flex;}
 .screen[data-screen="splash"]{padding:0;display:none;height:100%;}
 .screen[data-screen="splash"].active{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);}
 .screen-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:120px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
-.tabs-bottom{position:absolute;bottom:0;left:0;width:100%;background:var(--card-bg);display:none;justify-content:space-around;padding:10px 8px;padding-bottom:calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,0.08);z-index:999;}.splash-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px;}
+.tabs-bottom{position:absolute;bottom:0;left:0;right:0;width:100%;background:var(--card-bg);display:none;justify-content:space-around;padding:10px 8px;padding-bottom:calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,0.08);z-index:1000;}.splash-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px;}
 .splash-logo{width:100px;height:100px;margin-bottom:24px;animation:float 3s ease-in-out infinite;}
 .splash-title{color:white;font-size:42px;font-weight:800;margin-bottom:8px;letter-spacing:-1px;text-shadow:0 2px 16px rgba(0,0,0,0.3);}
 .splash-subtitle{color:rgba(255,255,255,0.7);font-size:15px;margin-bottom:48px;max-width:240px;line-height:1.6;}
@@ -25,7 +25,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .header-left{display:flex;align-items:center;gap:12px;}
 .menu-btn{background:none;border:none;font-size:24px;cursor:pointer;padding:4px;}
 .balance{font-size:15px;font-weight:600;color:var(--primary);}
-.tabs-bottom{position:absolute;bottom:0;left:0;width:100%;background:var(--card-bg);display:none;justify-content:space-around;padding:10px 8px;padding-bottom:calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,0.08);z-index:999;}
+.tabs-bottom{position:absolute;bottom:0;left:0;right:0;width:100%;background:var(--card-bg);display:none;justify-content:space-around;padding:10px 8px;padding-bottom:calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,0.08);z-index:1000;}
 .tab-item{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:4px 8px;transition:color 0.2s;}
 .tab-item.active{color:var(--primary);}
 .tab-item svg{width:22px;height:22px;stroke:currentColor;fill:none;flex-shrink:0;}
@@ -1184,10 +1184,49 @@ function nav(id){showScreen(id);document.querySelectorAll(".tab-item").forEach(f
 function toggleDrawer(){document.getElementById("drawer").classList.toggle("open");document.getElementById("drawerOverlay").classList.toggle("open");}
 function closeDrawer(){document.getElementById("drawer").classList.remove("open");document.getElementById("drawerOverlay").classList.remove("open");}
 function initParts(){try{var sec=document.querySelector('[data-screen="splash"]');if(!sec)return;var c=document.createElement("canvas");c.style.cssText="position:absolute;top:0;left:0;pointer-events:none;z-index:0;";c.width=390;c.height=window.innerHeight;sec.insertBefore(c,sec.firstChild);var W=c.width,H=c.height,ctx=c.getContext("2d"),pts=[];for(var i=0;i<80;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+1,vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1.2,a:Math.random()*.5+.3});(function draw(){try{ctx.clearRect(0,0,W,H);for(var a=0;a<pts.length;a++)for(var b=a+1;b<pts.length;b++){var dx=pts[a].x-pts[b].x,dy=pts[a].y-pts[b].y,d=Math.sqrt(dx*dx+dy*dy);if(d<140){ctx.beginPath();ctx.strokeStyle="rgba(167,139,250,"+(0.3*(1-d/140))+")";ctx.lineWidth=.8;ctx.moveTo(pts[a].x,pts[a].y);ctx.lineTo(pts[b].x,pts[b].y);ctx.stroke();}}pts.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle="rgba(167,139,250,"+p.a+")";ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;});sAnim=requestAnimationFrame(draw);}catch(e){}})();}catch(e){}}
-function openBuy(sym){var a=MP[sym];if(!a)return;STATE.currentBuyAsset=sym;window._curBuySym=sym;document.getElementById("modal-asset-name").textContent=sym;document.getElementById("modal-asset-price").textContent=fc(a.price);document.getElementById("modal-asset-change").textContent=fp(a.change);document.getElementById("modal-asset-change").style.color=a.change>=0?"var(--success)":"var(--danger)";document.getElementById("modal-balance").textContent=fc(STATE.balance);document.getElementById("buy-amount").value="";document.getElementById("modal-total").textContent="$0.00";document.getElementById("buyModal").classList.add("open");document.querySelectorAll("#buyModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});setTimeout(function(){if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}gChartReal(sym,"price-chart","#2DD4BF","line");},50);}
+function openBuy(sym){
+  var a=MP[sym];if(!a)return;
+  STATE.currentBuyAsset=sym;window._curBuySym=sym;
+  document.getElementById("modal-asset-name").textContent=sym;
+  document.getElementById("modal-asset-price").textContent=fc(a.price);
+  document.getElementById("modal-asset-change").textContent=fp(a.change);
+  document.getElementById("modal-asset-change").style.color=a.change>=0?"var(--success)":"var(--danger)";
+  document.getElementById("modal-balance").textContent=fc(STATE.balance);
+  document.getElementById("buy-amount").value="";
+  document.getElementById("modal-total").textContent="$0.00";
+  document.getElementById("buyModal").classList.add("open");
+  document.querySelectorAll("#buyModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});
+  setTimeout(function(){
+    if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}
+    var cont=document.getElementById("chart-container");
+    if(cont){cont.innerHTML='<canvas id="price-chart"></canvas>';}
+    gChartReal(sym,"price-chart","#2DD4BF","line");
+  },80);
+}
 function closeBuy(){document.getElementById("buyModal").classList.remove("open");if(window._cBC){try{window._cBC.destroy();}catch(e){}window._cBC=null;}STATE.currentBuyAsset=null;}
 function confirmBuy(){var amt=parseFloat(document.getElementById("buy-amount").value);if(!amt||amt<=0){toast("Ingresa una cantidad valida");return;}if(amt>STATE.balance){toast("Balance insuficiente");return;}var a=MP[STATE.currentBuyAsset],sym=STATE.currentBuyAsset,ex=STATE.portfolio.find(function(p){return p.symbol===sym;});if(ex){var tq=ex.quantity+amt/a.price;ex.invested+=amt;ex.quantity=tq;ex.buyPrice=ex.invested/tq;}else STATE.portfolio.push({symbol:sym,quantity:amt/a.price,buyPrice:a.price,invested:amt});STATE.balance-=amt;STATE.transactions.unshift({type:"buy",symbol:sym,amount:amt,price:a.price,date:new Date().toISOString()});chkAch();save();updBal();uLeagData();closeBuy();toast("Compraste "+sym+" por "+fc(amt));}
-function openSell(sym){var p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var cp=MP[sym].price,cv=p.quantity*cp,pf=cv-p.invested;STATE.currentSellAsset=sym;window._curSellSym=sym;document.getElementById("sell-modal-asset-name").textContent=sym;document.getElementById("sell-modal-current-price").textContent=fc(cp);document.getElementById("sell-modal-investment").textContent=fc(p.invested);document.getElementById("sell-modal-current-value").textContent=fc(cv);document.getElementById("sell-modal-profit").textContent=fc(pf);document.getElementById("sell-modal-profit").style.color=pf>=0?"var(--success)":"var(--danger)";document.getElementById("sell-amount").value="";document.getElementById("sell-receive").textContent="$0.00";document.getElementById("sell-gain-est").textContent="$0.00";document.getElementById("sellModal").classList.add("open");setTimeout(function(){if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}gChartReal(sym,"sell-price-chart","#EF4444","line");document.querySelectorAll("#sellModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});},50);}
+function openSell(sym){
+  var p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;
+  var cp=MP[sym].price,cv=p.quantity*cp,pf=cv-p.invested;
+  STATE.currentSellAsset=sym;window._curSellSym=sym;
+  document.getElementById("sell-modal-asset-name").textContent=sym;
+  document.getElementById("sell-modal-current-price").textContent=fc(cp);
+  document.getElementById("sell-modal-investment").textContent=fc(p.invested);
+  document.getElementById("sell-modal-current-value").textContent=fc(cv);
+  document.getElementById("sell-modal-profit").textContent=fc(pf);
+  document.getElementById("sell-modal-profit").style.color=pf>=0?"var(--success)":"var(--danger)";
+  document.getElementById("sell-amount").value="";
+  document.getElementById("sell-receive").textContent="$0.00";
+  document.getElementById("sell-gain-est").textContent="$0.00";
+  document.getElementById("sellModal").classList.add("open");
+  setTimeout(function(){
+    if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}
+    var cont=document.getElementById("sell-chart-container");
+    if(cont){cont.innerHTML='<canvas id="sell-price-chart"></canvas>';}
+    gChartReal(sym,"sell-price-chart","#EF4444","line");
+    document.querySelectorAll("#sellModal .chart-type-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type==="line");});
+  },80);
+}
 function closeSell(){document.getElementById("sellModal").classList.remove("open");if(window._cSC){try{window._cSC.destroy();}catch(e){}window._cSC=null;}STATE.currentSellAsset=null;}
 function confirmSell(){var sym=STATE.currentSellAsset,p=STATE.portfolio.find(function(x){return x.symbol===sym;});if(!p)return;var amt=parseFloat(document.getElementById("sell-amount").value),cv=p.quantity*MP[sym].price;if(!amt||amt<=0){toast("Ingresa cantidad valida");return;}if(amt>cv){toast("Maximo: "+fc(cv));return;}var ratio=amt/cv,iS=p.invested*ratio,gain=amt-iS;STATE.balance+=amt;STATE.transactions.unshift({type:"sell",symbol:sym,amount:amt,price:MP[sym].price,date:new Date().toISOString()});if(ratio>=0.9999)STATE.portfolio=STATE.portfolio.filter(function(x){return x.symbol!==sym;});else{p.quantity-=p.quantity*ratio;p.invested-=iS;}save();updBal();uLeagData();closeSell();toast("Vendiste "+fc(amt)+" de "+sym);uPort();}
 function uHome(){updBal();var inv=0,cur=0;STATE.portfolio.forEach(function(it){inv+=it.invested;cur+=it.quantity*MP[it.symbol].price;});var pf=cur-inv;document.getElementById("home-total-balance").textContent=fc(STATE.balance+cur);document.getElementById("home-invested").textContent=fc(inv);document.getElementById("home-profit").textContent=fc(pf);document.getElementById("home-profit").style.color=pf>=0?"var(--success)":"var(--danger)";var prev=document.getElementById("home-portfolio-preview");if(STATE.portfolio.length>0){var h='<div class="card"><div class="card-title">Tus inversiones activas ('+STATE.portfolio.length+')</div>';STATE.portfolio.slice(0,3).forEach(function(it){var a=MP[it.symbol],cv=it.quantity*a.price,pp=((cv-it.invested)/it.invested)*100;h+='<div class="asset-item" data-nav="portfolio"><div class="asset-info"><div class="asset-icon" style="background:'+a.color+';">'+a.icon+'</div><div class="asset-details"><h4>'+it.symbol+'</h4><p>Invertido: '+fc(it.invested)+'</p></div></div><div class="asset-value"><div class="asset-price">'+fc(cv)+'</div><div class="asset-change '+(pp>=0?'positive':'negative')+'">'+fp(pp)+"</div></div></div>";});if(STATE.portfolio.length>3)h+='<p style="text-align:center;margin-top:12px;color:var(--muted);font-size:14px;">+'+(STATE.portfolio.length-3)+' mas</p>';h+='</div>';prev.innerHTML=h;}else prev.innerHTML="";}
