@@ -334,7 +334,7 @@ function asPost(payload, callback){
   <div class="screen-body">
 
     <!-- TABS -->
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <div class="league-tabs-bar" style="display:flex;gap:8px;margin-bottom:16px;">
       <button class="league-tab active" data-ltab="amigos" onclick="switchLeagueTab('amigos')">👥 Mis Ligas</button>
       <button class="league-tab" data-ltab="rangos" onclick="switchLeagueTab('rangos')">🏅 Rangos</button>
       <button class="league-tab" data-ltab="nacional" onclick="switchLeagueTab('nacional')">🌎 Nacional</button>
@@ -970,10 +970,15 @@ function selectLeagueType(type){
 
 
 function switchLeagueTab(tab){
-  ["amigos","detalle","rangos","nacional"].forEach(function(t){
+  var allTabs=["amigos","detalle","rangos","nacional"];
+  allTabs.forEach(function(t){
     var el=document.getElementById("ltab-"+t);
     if(el) el.style.display=t===tab?"block":"none";
   });
+  // Ocultar barra de tabs cuando se ve el detalle
+  var tabBar=document.querySelector(".league-tabs-bar");
+  if(tabBar) tabBar.style.display=tab==="detalle"?"none":"flex";
+  // Marcar tab activo
   document.querySelectorAll(".league-tab").forEach(function(b){
     b.classList.toggle("active",b.dataset.ltab===tab);
   });
@@ -1001,6 +1006,7 @@ function getJornadaActual(league){
   return {temporada:Math.floor(semanas/jornadasPorTemp)+1, jornada:(semanas%jornadasPorTemp)+1};
 }
 var _ligaViendo=null;
+// Exponer funciones de liga globalmente para onclick inline
 function copiarCodigo(){
   var code=document.getElementById("detalle-codigo").textContent;
   if(navigator.clipboard) navigator.clipboard.writeText(code).then(function(){toast("Código "+code+" copiado!");});
@@ -1095,6 +1101,13 @@ function selectPlan(p){
   document.getElementById("plan-annual").style.borderColor=p==="annual"?"var(--primary)":"var(--border)";
   document.getElementById("subscribe-btn").textContent=p==="monthly"?"Suscribirme · $99 MXN/mes":"Suscribirme · $999 MXN/ano";
 }
+// Aliases globales para onclick inline en HTML dinámico
+window.verDetalleLiga=verDetalleLiga;
+window.eliminarLiga=eliminarLiga;
+window.copiarCodigo=copiarCodigo;
+window.switchLeagueTab=switchLeagueTab;
+window.selectLeagueType=selectLeagueType;
+
 </script>
 <script>
 (function(){
@@ -1148,7 +1161,7 @@ function loadFromAS(uid, callback){
       STATE.vidDone=d.vidDone||{};
       STATE.certDone=d.certDone||{};
       STATE.challengeDone=d.challengeDone||{};
-      STATE.myLeagues=d.myLeagues||[];
+      STATE.myLeagues=(d.myLeagues||[]).map(function(l){if(!l.code)l.code=genLeagueCode();return l;});
       if(d.achievements) STATE.achievements=d.achievements;
       if(d.courses) STATE.courses=d.courses;
     }
