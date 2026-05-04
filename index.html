@@ -1532,10 +1532,15 @@ document.addEventListener("DOMContentLoaded",function(){
     if(savedSession.avatar) STATE.user.avatar = savedSession.avatar;
     loadFromAS(savedSession.uid, function(){
       document.getElementById("drawer-user-name").textContent = STATE.user.name;
-      if(splashAnimId){ cancelAnimationFrame(splashAnimId); splashAnimId=null; }
+      if(sAnim){ cancelAnimationFrame(sAnim); sAnim=null; }
       showNav();
       nav("home");
+      // Diagnóstico: mostrar resultado de carga
+      console.log("Sesión cargada:", STATE.user.name, "Balance:", STATE.balance, "Portfolio:", STATE.portfolio.length);
     });
+  } else {
+    // No hay sesión guardada - mostrar splash
+    console.log("No hay sesión guardada en localStorage");
   }
 
   var hd = false;
@@ -1843,6 +1848,16 @@ document.addEventListener("DOMContentLoaded",function(){
   setInterval(fetchForex, 30000);
   setInterval(fetchStocks, 30000);
  // cada 15 segundos
+
+  // Exponer funciones de pantalla al scope global para showScreen
+  window.uHome=uHome; window.uPort=uPort; window.uMkts=uMkts;
+  window.uLeag=uLeag; window.uLearn=uLearn; window.uProf=uProf;
+  window.uMatch=uMatch; window.uRetos=uRetos;
+  window.splashAnimId=null;
+  Object.defineProperty(window,'splashAnimId',{
+    get:function(){return sAnim;},
+    set:function(v){sAnim=v;}
+  });
 });
 })();
 </script>
