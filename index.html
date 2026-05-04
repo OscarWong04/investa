@@ -1013,11 +1013,11 @@ function copiarCodigo(){
   else toast("Código: "+code);
 }
 function verDetalleLiga(idx){
-  _ligaViendo=STATE.myLeagues[idx];
+  _ligaViendo=window.STATE.myLeagues[idx];
   _ligaViendoIdx=idx;
   var lg=_ligaViendo;
   var info=getJornadaActual(lg);
-  var members=lg.members||[STATE.user.name];
+  var members=lg.members||[window.STATE.user.name];
   var admin=lg.admin||members[0]; // primer miembro = admin
 
   document.getElementById("detalle-nombre").textContent=lg.name;
@@ -1026,15 +1026,15 @@ function verDetalleLiga(idx){
 
   // Tabla clasificación con % ganancia y admin
   var myInv=0,myCur=0;
-  STATE.portfolio.forEach(function(p){myInv+=p.invested;myCur+=p.quantity*(MP[p.symbol]?MP[p.symbol].price:p.buyPrice);});
+  window.STATE.portfolio.forEach(function(p){myInv+=p.invested;myCur+=p.quantity*(window.MP[p.symbol]?window.MP[p.symbol].price:p.buyPrice);});
   var myGain=myInv>0?((myCur-myInv)/myInv*100):0;
   var standings=members.map(function(m){
-    var isMe=m===STATE.user.name;
+    var isMe=m===window.STATE.user.name;
     var seed=m.charCodeAt(0)+(m.charCodeAt(m.length-1)||0);
     return{
       name:m,
       gain:isMe?myGain:parseFloat(((seed%30)-10).toFixed(2)),
-      investments:isMe?STATE.portfolio.length:Math.floor(seed%8)+1,
+      investments:isMe?window.STATE.portfolio.length:Math.floor(seed%8)+1,
       isUser:isMe,
       isAdmin:m===admin
     };
@@ -1065,13 +1065,13 @@ function verDetalleLiga(idx){
 
   // Calendario
   var cal=lg.calendar||[];
-  var misPartidos=cal.filter(function(p){return p.local===STATE.user.name||p.visitante===STATE.user.name;});
+  var misPartidos=cal.filter(function(p){return p.local===window.STATE.user.name||p.visitante===window.STATE.user.name;});
   var calHtml="";
   if(misPartidos.length===0){
     calHtml='<p style="color:var(--muted);font-size:13px;text-align:center;">Se necesitan al menos 2 miembros para el calendario</p>';
   } else {
     misPartidos.slice(0,15).forEach(function(p){
-      var rival=p.local===STATE.user.name?p.visitante:p.local;
+      var rival=p.local===window.STATE.user.name?p.visitante:p.local;
       var isCurrent=p.temporada===info.temporada&&p.jornada===info.jornada;
       var isPast=p.temporada<info.temporada||(p.temporada===info.temporada&&p.jornada<info.jornada);
       var cls,txt;
@@ -1088,25 +1088,48 @@ function verDetalleLiga(idx){
 var _ligaViendoIdx=null;
 function eliminarLiga(){
   if(_ligaViendoIdx===null) return;
-  var lg=STATE.myLeagues[_ligaViendoIdx];
+  var lg=window.STATE.myLeagues[_ligaViendoIdx];
   if(!confirm("¿Eliminar la liga '"+lg.name+"'? Esta acción no se puede deshacer.")) return;
-  STATE.myLeagues.splice(_ligaViendoIdx,1);
+  window.STATE.myLeagues.splice(_ligaViendoIdx,1);
   _ligaViendo=null; _ligaViendoIdx=null;
-  save(); uLeag();
+  if(window.uLeag)window.uLeag();; uLeag();
   switchLeagueTab("amigos");
 }
 
+var RANGOS=[
+  {nombre:"Bronce I",   icon:"🥉",xpMin:0,    xpMax:200,  color:"#cd7f32",cursos:"Introduccion al Trading"},
+  {nombre:"Bronce II",  icon:"🥉",xpMin:200,  xpMax:400,  color:"#cd7f32",cursos:"Analisis Tecnico Basico"},
+  {nombre:"Plata I",    icon:"🥈",xpMin:400,  xpMax:700,  color:"#a0a0a0",cursos:"Gestion de Riesgo"},
+  {nombre:"Plata II",   icon:"🥈",xpMin:700,  xpMax:1100, color:"#a0a0a0",cursos:"Forex Avanzado"},
+  {nombre:"Oro I",      icon:"🥇",xpMin:1100, xpMax:1600, color:"#FFD700",cursos:"Criptomonedas Pro"},
+  {nombre:"Oro II",     icon:"🥇",xpMin:1600, xpMax:2200, color:"#FFD700",cursos:"Trading Algoritmico"},
+  {nombre:"Platino",    icon:"💎",xpMin:2200, xpMax:3000, color:"#4FC3F7",cursos:"Estrategias Institucionales"},
+  {nombre:"Diamante",   icon:"🔷",xpMin:3000, xpMax:4200, color:"#00BCD4",cursos:"Analisis Cuantitativo"},
+  {nombre:"Maestro",    icon:"👑",xpMin:4200, xpMax:6000, color:"#9C27B0",cursos:"Masterclass Investa"},
+  {nombre:"Gran Maestro",icon:"🌟",xpMin:6000,xpMax:99999,color:"#FF6F00",cursos:"Acceso Total Premium"}
+];
+function getTotalXP(){
+  if(typeof STATE==="undefined") return 0;
+  var total=STATE.user.xp||0;
+  var xpMax=100;
+  for(var i=1;i<(STATE.user.level||1);i++){total+=xpMax;xpMax=Math.floor(xpMax*1.5);}
+  return total;
+}
+function getRangoActual(){
+  var total=getTotalXP();
+  for(var i=RANGOS.length-1;i>=0;i--){if(total>=RANGOS[i].xpMin)return i;}
+  return 0;
+}
 function selectPlan(p){
   document.getElementById("plan-monthly").style.borderColor=p==="monthly"?"var(--primary)":"var(--border)";
   document.getElementById("plan-annual").style.borderColor=p==="annual"?"var(--primary)":"var(--border)";
   document.getElementById("subscribe-btn").textContent=p==="monthly"?"Suscribirme · $99 MXN/mes":"Suscribirme · $999 MXN/ano";
 }
 // Aliases globales para onclick inline en HTML dinámico
-window.verDetalleLiga=verDetalleLiga;
-window.eliminarLiga=eliminarLiga;
 window.copiarCodigo=copiarCodigo;
 window.switchLeagueTab=switchLeagueTab;
 window.selectLeagueType=selectLeagueType;
+// verDetalleLiga y eliminarLiga se exponen desde el IIFE
 
 </script>
 <script>
@@ -1619,6 +1642,8 @@ window.uHome=uHome; window.uPort=uPort; window.uMkts=uMkts;
 window.uLeag=uLeag; window.uLearn=uLearn; window.uProf=uProf;
 window.uMatch=uMatch; window.uRetos=uRetos;
 window.updBal=updBal; window.updShopTokens=updShopTokens;
+window.verDetalleLiga=verDetalleLiga;
+window.eliminarLiga=eliminarLiga;
 document.addEventListener("DOMContentLoaded",function(){
   // Limpiar cache viejo si la versión cambió
   // Verificar sesion guardada en localStorage
