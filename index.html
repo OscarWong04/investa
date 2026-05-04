@@ -1174,7 +1174,27 @@ function updShopTokens(){
   var el=document.getElementById("shop-tokens-count");
   if(el)el.textContent=STATE.user.tokens;
 }
-function showScreen(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});var t=document.querySelector('[data-screen="'+id+'"]');if(t){t.classList.add("active");var body=t.querySelector(".screen-body");if(body)body.scrollTop=0;var m={home:uHome,portfolio:uPort,markets:uMkts,league:uLeag,learn:uLearn,profile:uProf,matchup:uMatch,shop:function(){updBal();updShopTokens();},support:function(){updBal();},retos:uRetos};if(m[id])m[id]();}closeDrawer();}
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});
+  var t=document.querySelector('[data-screen="'+id+'"]');
+  if(t){
+    t.classList.add("active");
+    var body=t.querySelector(".screen-body");
+    if(body) body.scrollTop=0;
+    // Buscar función en window en el momento de llamar (lazy)
+    var fnMap={home:"uHome",portfolio:"uPort",markets:"uMkts",league:"uLeag",
+      learn:"uLearn",profile:"uProf",matchup:"uMatch",retos:"uRetos"};
+    if(fnMap[id] && window[fnMap[id]]){
+      window[fnMap[id]]();
+    } else if(id==="shop"){
+      if(window.updBal) window.updBal();
+      if(window.updShopTokens) window.updShopTokens();
+    } else if(id==="support"){
+      if(window.updBal) window.updBal();
+    }
+  }
+  closeDrawer();
+}
 function nav(id){showScreen(id);document.querySelectorAll(".tab-item").forEach(function(t){t.classList.toggle("active",t.dataset.tab===id);});}
 function toggleDrawer(){document.getElementById("drawer").classList.toggle("open");document.getElementById("drawerOverlay").classList.toggle("open");}
 function closeDrawer(){document.getElementById("drawer").classList.remove("open");document.getElementById("drawerOverlay").classList.remove("open");}
@@ -1853,11 +1873,7 @@ document.addEventListener("DOMContentLoaded",function(){
   window.uHome=uHome; window.uPort=uPort; window.uMkts=uMkts;
   window.uLeag=uLeag; window.uLearn=uLearn; window.uProf=uProf;
   window.uMatch=uMatch; window.uRetos=uRetos;
-  window.splashAnimId=null;
-  Object.defineProperty(window,'splashAnimId',{
-    get:function(){return sAnim;},
-    set:function(v){sAnim=v;}
-  });
+  window.updBal=updBal; window.updShopTokens=updShopTokens;
 });
 })();
 </script>
