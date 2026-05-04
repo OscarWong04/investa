@@ -1539,6 +1539,11 @@ function handleLogin(){
   doLogin(em, pw, btn, "Iniciar sesion");
 }
 var selPlan="annual";
+// Exponer funciones al scope global ANTES del DOMContentLoaded
+window.uHome=uHome; window.uPort=uPort; window.uMkts=uMkts;
+window.uLeag=uLeag; window.uLearn=uLearn; window.uProf=uProf;
+window.uMatch=uMatch; window.uRetos=uRetos;
+window.updBal=updBal; window.updShopTokens=updShopTokens;
 document.addEventListener("DOMContentLoaded",function(){
   // Limpiar cache viejo si la versión cambió
   // Verificar sesion guardada en localStorage
@@ -1868,12 +1873,6 @@ document.addEventListener("DOMContentLoaded",function(){
   setInterval(fetchForex, 30000);
   setInterval(fetchStocks, 30000);
  // cada 15 segundos
-
-  // Exponer funciones de pantalla al scope global para showScreen
-  window.uHome=uHome; window.uPort=uPort; window.uMkts=uMkts;
-  window.uLeag=uLeag; window.uLearn=uLearn; window.uProf=uProf;
-  window.uMatch=uMatch; window.uRetos=uRetos;
-  window.updBal=updBal; window.updShopTokens=updShopTokens;
 });
 })();
 </script>
