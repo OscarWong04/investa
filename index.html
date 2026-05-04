@@ -1287,7 +1287,39 @@ function _eliminarLiga(){
 window.verDetalleLiga=_verDetalleLiga;
 window.eliminarLiga=_eliminarLiga;
 
+function syncLeaguesAndRender(){
+  // Si no hay ligas o no hay conexión, renderizar directo
+  if(!STATE.myLeagues||STATE.myLeagues.length===0||!_currentUID){
+    uLeagRender(); return;
+  }
+  // Sincronizar cada liga desde Sheets
+  var total=STATE.myLeagues.length, done=0;
+  STATE.myLeagues.forEach(function(lg,idx){
+    if(!lg.code){done++;if(done===total)uLeagRender();return;}
+    asPost({action:"getLeague",code:lg.code},function(r){
+      if(r.ok&&r.league){
+        // Actualizar miembros y calendario del servidor
+        var serverLg=r.league;
+        if(serverLg.members) STATE.myLeagues[idx].members=serverLg.members;
+        if(serverLg.calendar) STATE.myLeagues[idx].calendar=serverLg.calendar;
+        if(serverLg.admin) STATE.myLeagues[idx].admin=serverLg.admin;
+        // Asegurar que el usuario sigue en la lista
+        if(STATE.myLeagues[idx].members.indexOf(STATE.user.name)===-1){
+          STATE.myLeagues[idx].members.push(STATE.user.name);
+        }
+      }
+      done++;
+      if(done===total){save();uLeagRender();}
+    });
+  });
+}
+
 function uLeag(){
+  updBal();
+  syncLeaguesAndRender();
+}
+
+function uLeagRender(){
   updBal();
   // Renderizar lista de ligas del usuario
   var mll=document.getElementById("my-leagues-list");
